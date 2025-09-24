@@ -413,12 +413,12 @@ public class Bootstrapper implements CommandLineRunner {
                     book8.get(), book9.get(), book10.get()});
         }
 
-        final var readerDetails1 = readerRepository.findByReaderNumber("2024/1");
-        final var readerDetails2 = readerRepository.findByReaderNumber("2024/2");
-        final var readerDetails3 = readerRepository.findByReaderNumber("2024/3");
-        final var readerDetails4 = readerRepository.findByReaderNumber("2024/4");
-        final var readerDetails5 = readerRepository.findByReaderNumber("2024/5");
-        final var readerDetails6 = readerRepository.findByReaderNumber("2024/6");
+        final var readerDetails1 = readerRepository.findByReaderNumber("2025/1");
+        final var readerDetails2 = readerRepository.findByReaderNumber("2025/2");
+        final var readerDetails3 = readerRepository.findByReaderNumber("2025/3");
+        final var readerDetails4 = readerRepository.findByReaderNumber("2025/4");
+        final var readerDetails5 = readerRepository.findByReaderNumber("2025/5");
+        final var readerDetails6 = readerRepository.findByReaderNumber("2025/6");
 
         List<ReaderDetails> readers = new ArrayList<>();
         if(readerDetails1.isPresent() && readerDetails2.isPresent() && readerDetails3.isPresent()){
@@ -426,9 +426,14 @@ public class Bootstrapper implements CommandLineRunner {
                             readerDetails4.get(), readerDetails5.get(), readerDetails6.get()});
         }
 
+        if (books.isEmpty() || readers.isEmpty()) {
+            throw new IllegalStateException("Livros ou leitores não encontrados na base de dados.");
+        }
+
         LocalDate startDate;
         LocalDate returnedDate;
         Lending lending;
+
 
         //Lendings 1 through 3 (late, returned)
         for(i = 0; i < 3; i++){
