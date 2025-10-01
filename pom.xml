@@ -88,7 +88,6 @@
             <version>1.5.5.Final</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/com.googlecode.owasp-java-html-sanitizer/owasp-java-html-sanitizer -->
         <!-- HTML sanitizer -->
         <dependency>
             <groupId>com.googlecode.owasp-java-html-sanitizer</groupId>
@@ -96,13 +95,12 @@
             <version>20220608.1</version>
         </dependency>
 
-        <!-- Testing framework-->
+        <!-- Testing framework -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
-
 
         <!-- Web client -->
         <dependency>
@@ -114,7 +112,7 @@
         <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
             <artifactId>mssql-jdbc</artifactId>
-            <version>11.2.0.jre8</version> <!-- Check the latest version on Maven Central -->
+            <version>11.2.0.jre8</version>
         </dependency>
 
         <!-- Mongo Driver -->
@@ -129,11 +127,7 @@
             <artifactId>firebase-admin</artifactId>
             <version>9.3.0</version>
         </dependency>
-
-
     </dependencies>
-
-
 
     <build>
         <plugins>
@@ -142,6 +136,28 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
 
+            <!-- JaCoCo: cobertura de testes -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.10</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- PIT Mutation Testing -->
             <plugin>
                 <groupId>org.pitest</groupId>
                 <artifactId>pitest-maven</artifactId>
@@ -151,7 +167,7 @@
                     <dependency>
                         <groupId>org.pitest</groupId>
                         <artifactId>pitest-junit5-plugin</artifactId>
-                        <version>1.1.0</version> <!-- Latest version as of this writing -->
+                        <version>1.1.0</version>
                     </dependency>
                 </dependencies>
                 <configuration>
@@ -177,7 +193,6 @@
                 </configuration>
             </plugin>
 
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -189,7 +204,7 @@
                             <artifactId>lombok</artifactId>
                             <version>1.18.30</version>
                         </path>
-                        <!-- Mapper library to automate model transformations DTO: <-> Model -->
+                        <!-- Mapper library to automate model transformations DTO <-> Model -->
                         <path>
                             <groupId>org.mapstruct</groupId>
                             <artifactId>mapstruct-processor</artifactId>
@@ -206,5 +221,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>
