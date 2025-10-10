@@ -11,6 +11,18 @@ class DescriptionTest {
         assertDoesNotThrow(() -> new Description(null));
     }
 
+    @Test
+    void ensureDescriptionCanBeBlank() {
+        assertDoesNotThrow(() -> new Description("   "));
+    }
+
+    @Test
+    void ensureProtectedConstructorWorks() throws Exception {
+        var constructor = Description.class.getDeclaredConstructor();
+        constructor.setAccessible(true);
+        assertDoesNotThrow(() -> constructor.newInstance());
+    }
+
 
     /**
      * Text from <a href="https://www.lipsum.com/">Lorem Ipsum</a> generator.

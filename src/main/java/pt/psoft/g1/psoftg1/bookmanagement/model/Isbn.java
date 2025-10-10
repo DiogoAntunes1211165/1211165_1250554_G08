@@ -50,7 +50,7 @@ public class Isbn implements Serializable {
     }
 
     private static boolean isValidIsbn13(String isbn) {
-        if (isbn == null || !isbn.matches("\\d{13}")) {
+        if (!isbn.matches("\\d{13}")) {
             return false;
         }
 
