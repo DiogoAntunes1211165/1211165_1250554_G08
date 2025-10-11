@@ -29,6 +29,12 @@ class TitleTest {
         assertEquals("Some title", title.toString());
     }
 
+    @Test
+    void ensureProtectedConstructorWorks() throws Exception {
+        var constructor = Title.class.getDeclaredConstructor();
+        constructor.setAccessible(true);
+        assertEquals(Title.class, constructor.newInstance().getClass());
+    }
 
     /**
      * Text from <a href="https://www.lipsum.com/">Lorem Ipsum</a> generator.
@@ -65,6 +71,15 @@ class TitleTest {
         final var title = new Title("Some title");
         title.setTitle("Some other title");
         assertEquals("Some other title", title.toString());
+    }
+
+    @Test
+    public void testGetter() {
+        String value = "My Book Title";
+        Title title = new Title(value);
+
+        // Aqui estamos testando que o @Getter funciona
+        assertEquals(value, title.getTitle());
     }
 
 }

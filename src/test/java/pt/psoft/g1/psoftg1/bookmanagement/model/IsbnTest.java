@@ -16,6 +16,12 @@ class IsbnTest {
         assertThrows(IllegalArgumentException.class, () -> new Isbn(""));
     }
 
+    @Test
+    void ensureProtectedConstructorWorks() throws Exception {
+        var constructor = Isbn.class.getDeclaredConstructor();
+        constructor.setAccessible(true);
+        assertDoesNotThrow(() -> constructor.newInstance());
+    }
 
     /**
      * Text from <a href="https://www.lipsum.com/">Lorem Ipsum</a> generator.
@@ -48,8 +54,14 @@ class IsbnTest {
     }
 
     @Test
-    void ensureChecksum13IsCorrect() {
+    void ensureThatAnIsbn13WithAWrongValidationDigitIsRejected() {
         assertThrows(IllegalArgumentException.class, () -> new Isbn("9782826012099"));
+    }
+
+    @Test
+    void ensureThatAnIsbn13WhereTheValidationDigitOf10IsSet() {
+        final var isbn = new Isbn("4200000000000");
+        assertEquals("4200000000000", isbn.toString());
     }
 
     @Test
@@ -62,4 +74,21 @@ class IsbnTest {
     void ensureChecksum10IsCorrect() {
         assertThrows(IllegalArgumentException.class, () -> new Isbn("8175257667"));
     }
+
+    @Test
+    void ensureThatAnValidIsbn10ThatEndsWithAnXIsSet() {
+        final var isbn = new Isbn("030640625X");
+        assertEquals("030640625X", isbn.toString());
+    }
+
+    @Test
+    void ensureThatAnInvalidIsbn10ThatEndsWithAnXIsRejected() {
+        assertThrows(IllegalArgumentException.class, () -> new Isbn("030640615X"));
+    }
+
+    @Test
+    void ensureThatAnInvalidIsbn10IsRejected() {
+        assertThrows(IllegalArgumentException.class, () -> new Isbn("123456789A"));
+    }
+
 }
