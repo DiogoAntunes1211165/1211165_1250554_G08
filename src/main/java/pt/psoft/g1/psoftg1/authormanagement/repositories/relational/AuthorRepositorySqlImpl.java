@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import pt.psoft.g1.psoftg1.authormanagement.api.AuthorLendingView;
 import pt.psoft.g1.psoftg1.authormanagement.model.Author;
 import pt.psoft.g1.psoftg1.authormanagement.repositories.AuthorRepository;
@@ -19,8 +20,7 @@ import java.util.Optional;
 
 
 @Profile("sqlServer")
-@Qualifier("AuthorRepositorySqlImpl")
-@Component
+@Repository("AuthorRepositorySqlImpl")
 public class AuthorRepositorySqlImpl implements AuthorRepository {
 
     private AuthorEntityMapper authorEntityMapper;
@@ -34,7 +34,7 @@ public class AuthorRepositorySqlImpl implements AuthorRepository {
     }
 
     @Override
-    public Optional<Author> findByAuthorNumber(Long authorNumber) {
+    public Optional<Author> findByAuthorNumber(String authorNumber) {
         if (authorRepositorySQL.findByAuthorNumber(authorNumber).isEmpty()) {
             return Optional.empty();
         } else {
@@ -84,7 +84,7 @@ public class AuthorRepositorySqlImpl implements AuthorRepository {
     }
 
     @Override
-    public List<Author> findCoAuthorsByAuthorNumber(Long authorNumber) {
+    public List<Author> findCoAuthorsByAuthorNumber(String authorNumber) {
         return List.of();
     }
 }

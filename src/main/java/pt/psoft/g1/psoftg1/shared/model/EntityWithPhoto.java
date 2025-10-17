@@ -11,11 +11,9 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 
 @Getter
-@MappedSuperclass
+
 public abstract class EntityWithPhoto {
-    @Nullable
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name="photo_id")
+
     protected Photo photo;
 
     //This method is used by the mapper in order to set the photo. This will call the setPhotoInternal method that

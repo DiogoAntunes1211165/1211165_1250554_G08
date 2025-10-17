@@ -2,6 +2,7 @@ package pt.psoft.g1.psoftg1.authormanagement.model;
 
 import org.hibernate.StaleObjectStateException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import pt.psoft.g1.psoftg1.authormanagement.services.CreateAuthorRequest;
 import pt.psoft.g1.psoftg1.authormanagement.services.UpdateAuthorRequest;
@@ -27,6 +28,22 @@ class AuthorTest {
     }
 
     @Test
+    void testGetBio(){
+        Author author = new Author(validName, validBio, null);
+        assertEquals(validBio, author.getBio());
+    }
+
+    @Test
+    void testGetName(){
+        Author author = new Author(validName, validBio, null);
+        assertEquals(validName, author.getName());
+    }
+
+
+
+
+
+    @Test
     void ensureBioNotNull(){
         assertThrows(IllegalArgumentException.class, () -> new Author(validName,null, null));
     }
@@ -37,6 +54,8 @@ class AuthorTest {
 
         assertThrows(StaleObjectStateException.class, () -> subject.applyPatch(999, request));
     }
+
+
 
     @Test
     void testCreateAuthorWithoutPhoto() {
