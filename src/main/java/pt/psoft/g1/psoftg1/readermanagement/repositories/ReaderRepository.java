@@ -19,7 +19,7 @@ public interface ReaderRepository {
     Optional<ReaderDetails> findByReaderNumber(@Param("readerNumber") @NotNull String readerNumber);
     List<ReaderDetails> findByPhoneNumber(@Param("phoneNumber") @NotNull String phoneNumber);
     Optional<ReaderDetails> findByUsername(@Param("username") @NotNull String username);
-    Optional<ReaderDetails> findByUserId(@Param("userId") @NotNull Long userId);
+    Optional<ReaderDetails> findByUserId(@Param("userId") @NotNull String userId);
     int getCountFromCurrentYear();
     ReaderDetails save(ReaderDetails readerDetails);
     Iterable<ReaderDetails> findAll();

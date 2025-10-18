@@ -20,37 +20,52 @@ import pt.psoft.g1.psoftg1.usermanagement.model.relational.ReaderEntity;
 import java.nio.file.InvalidPathException;
 import java.util.List;
 
+
+
+@Entity
+@Table(name = "READER_DETAILS")
 public class ReaderDetailsEntity extends EntityWithPhotoEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long pk;
 
     @Getter
     @Setter
+    @OneToOne
     private ReaderEntity reader;
+
 
     private ReaderNumberEntity readerNumber;
 
+    @Embedded
     @Getter
     private BirthDateEntity birthDate;
 
+    @Embedded
     private PhoneNumberEntity phoneNumber;
 
     @Setter
     @Getter
+    @Basic
     private boolean gdprConsent;
 
     @Setter
+    @Basic
     @Getter
     private boolean marketingConsent;
 
     @Setter
+    @Basic
     @Getter
     private boolean thirdPartySharingConsent;
 
+    @Version
     @Getter
-    @Setter
     private Long version;
 
     @Getter
     @Setter
+    @ManyToMany
     private List<GenreEntity> interestList;
 
     public ReaderDetailsEntity(int readerNumber, ReaderEntity reader, String birthDate, String phoneNumber, boolean gdpr, boolean marketing, boolean thirdParty, String photoURI, List<GenreEntity> interestList) {
@@ -73,7 +88,6 @@ public class ReaderDetailsEntity extends EntityWithPhotoEntity {
         setMarketingConsent(marketing);
         setThirdPartySharingConsent(thirdParty);
         setInterestList(interestList);
-        setVersion(0L);
     }
 
     private void setPhoneNumber(PhoneNumberEntity number) {
@@ -157,6 +171,7 @@ public class ReaderDetailsEntity extends EntityWithPhotoEntity {
     public String getReaderNumber(){
         return this.readerNumber.toString();
     }
+
 
     public String getPhoneNumber() { return this.phoneNumber.toString();}
 

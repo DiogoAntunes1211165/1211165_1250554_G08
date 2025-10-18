@@ -71,9 +71,8 @@ public class ReaderServiceImpl implements ReaderService {
 
         int count = readerRepo.getCountFromCurrentYear();
         Reader reader = readerMapper.createReader(request);
-        ReaderDetails rd = readerMapper.createReaderDetails(count+1, reader, request, photoURI, interestList);
-
         userRepo.save(reader);
+        ReaderDetails rd = readerMapper.createReaderDetails(count+1, reader, request, photoURI, interestList);
         return readerRepo.save(rd);
     }
 
@@ -87,7 +86,7 @@ public class ReaderServiceImpl implements ReaderService {
     }
 
     @Override
-    public ReaderDetails update(final Long id, final UpdateReaderRequest request, final long desiredVersion, String photoURI){
+    public ReaderDetails update(final String id, final UpdateReaderRequest request, final long desiredVersion, String photoURI){
         final ReaderDetails readerDetails = readerRepo.findByUserId(id)
                 .orElseThrow(() -> new NotFoundException("Cannot find reader"));
 

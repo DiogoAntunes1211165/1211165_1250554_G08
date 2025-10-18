@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
+import pt.psoft.g1.psoftg1.readermanagement.model.relational.ReaderDetailsEntity;
 
 
 @Getter
@@ -12,6 +13,6 @@ import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReaderBookCountDTO {
-    private ReaderDetails readerDetails;
+    private ReaderDetailsEntity readerDetails;
     private long lendingCount;
 }

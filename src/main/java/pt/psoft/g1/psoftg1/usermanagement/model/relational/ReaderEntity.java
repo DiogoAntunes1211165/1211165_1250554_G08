@@ -1,12 +1,15 @@
 package pt.psoft.g1.psoftg1.usermanagement.model.relational;
 
 
+import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import pt.psoft.g1.psoftg1.usermanagement.model.Role;
 import pt.psoft.g1.psoftg1.usermanagement.model.User;
 
 @Entity
 public class ReaderEntity extends UserEntity {
+
+
     protected ReaderEntity() {
         // for ORM only
     }
