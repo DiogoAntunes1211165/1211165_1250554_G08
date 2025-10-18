@@ -8,11 +8,9 @@ import lombok.EqualsAndHashCode;
 import java.io.Serializable;
 
 
-@Embeddable
-@EqualsAndHashCode
+
 public class Isbn implements Serializable {
-    @Size(min = 10, max = 13)
-    @Column(name="ISBN", length = 16)
+
 
     String isbn;
 

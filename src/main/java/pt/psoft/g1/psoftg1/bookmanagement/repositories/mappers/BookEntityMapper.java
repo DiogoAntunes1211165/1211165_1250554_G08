@@ -1,21 +1,26 @@
+
 package pt.psoft.g1.psoftg1.bookmanagement.repositories.mappers;
 
+
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Title;
 import pt.psoft.g1.psoftg1.bookmanagement.model.relational.BookEntity;
 import pt.psoft.g1.psoftg1.bookmanagement.model.relational.TitleEntity;
-import pt.psoft.g1.psoftg1.bookmanagement.repositories.BookRepository;
 import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
 import pt.psoft.g1.psoftg1.genremanagement.model.relational.GenreEntity;
 import pt.psoft.g1.psoftg1.shared.model.Photo;
 import pt.psoft.g1.psoftg1.shared.model.relational.PhotoEntity;
 
+@Mapper(componentModel = "spring")
 public interface BookEntityMapper {
 
-    Book toDomain(BookEntity bookEntity);
+    @Mapping(target = "version", source = "entity.version")
+    Book toDomain(BookEntity entity);
 
-    BookEntity toEntity(Book book);
 
+    BookEntity toEntity(Book model);
 
     default String map(Genre value){
         if (value == null){
@@ -58,7 +63,4 @@ public interface BookEntityMapper {
         }
         return value.getTitle();  // Exemplo para Title
     }
-
-
-
 }

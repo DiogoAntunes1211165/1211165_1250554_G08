@@ -1,16 +1,13 @@
 package pt.psoft.g1.psoftg1.bookmanagement.model.relational;
 
 
-
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.StaleObjectStateException;
-import pt.psoft.g1.psoftg1.authormanagement.model.Author;
+
 import pt.psoft.g1.psoftg1.authormanagement.model.relacional.AuthorEntity;
-import pt.psoft.g1.psoftg1.bookmanagement.model.Description;
-import pt.psoft.g1.psoftg1.bookmanagement.model.Isbn;
-import pt.psoft.g1.psoftg1.bookmanagement.model.Title;
 import pt.psoft.g1.psoftg1.bookmanagement.services.UpdateBookRequest;
 import pt.psoft.g1.psoftg1.exceptions.ConflictException;
 import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
@@ -26,6 +23,7 @@ import java.util.Objects;
         @UniqueConstraint(name = "uc_book_isbn", columnNames = {"ISBN"})
 })
 public class BookEntity extends EntityWithPhoto {
+    @Getter
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
     long pk;
@@ -52,7 +50,7 @@ public class BookEntity extends EntityWithPhoto {
     private List<AuthorEntity> authors = new ArrayList<>();
 
     @Embedded
-    Description description;
+    DescriptionEntity description;
 
     private void setTitle(String title) {this.title = new TitleEntity(title);}
 
@@ -60,11 +58,11 @@ public class BookEntity extends EntityWithPhoto {
         this.isbn = new IsbnEntity(isbn);
     }
 
-    private void setDescription(String description) {this.description = new Description(description); }
+    private void setDescription(String description) {this.description = new DescriptionEntity(description); }
 
-    private void setGenre(GenreEntity genre) {this.genre = genre; }
+    public void setGenre(GenreEntity genre) {this.genre = genre; }
 
-    private void setAuthors(List<AuthorEntity> authors) {this.authors = authors; }
+    public void setAuthors(List<AuthorEntity> authors) {this.authors = authors; }
 
     public String getDescription(){ return this.description.toString(); }
 
@@ -88,8 +86,6 @@ public class BookEntity extends EntityWithPhoto {
     protected BookEntity() {
         // got ORM only
     }
-
-
 
     public String getIsbn(){
         return this.isbn.toString();

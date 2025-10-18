@@ -1,18 +1,22 @@
 package pt.psoft.g1.psoftg1.bookmanagement.repositories.relational;
 
-import com.google.api.gax.paging.Page;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
 import pt.psoft.g1.psoftg1.bookmanagement.model.relational.BookEntity;
 import pt.psoft.g1.psoftg1.bookmanagement.repositories.BookRepository;
 import pt.psoft.g1.psoftg1.bookmanagement.services.BookCountDTO;
 
-import java.awt.print.Pageable;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+
+
 
 public interface BookRepositorySQL extends CrudRepository<BookEntity,Integer> {
 
@@ -58,7 +62,7 @@ public interface BookRepositorySQL extends CrudRepository<BookEntity,Integer> {
                     "JOIN AUTHOR a on BOOK_AUTHORS.AUTHORS_AUTHOR_NUMBER = a.AUTHOR_NUMBER " +
                     "WHERE a.AUTHOR_NUMBER = :authorNumber "
             , nativeQuery = true)
-    List<BookEntity> findBooksByAuthorNumber(Long authorNumber);
+    List<BookEntity> findBooksByAuthorNumber(String authorNumber);
 
 
 
