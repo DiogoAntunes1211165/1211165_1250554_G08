@@ -1,9 +1,10 @@
-package pt.psoft.g1.psoftg1.authormanagement.model;
+package pt.psoft.g1.psoftg1.unitTests.authormanagement.model;
 
 import org.hibernate.StaleObjectStateException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
+import pt.psoft.g1.psoftg1.authormanagement.model.Author;
 import pt.psoft.g1.psoftg1.authormanagement.services.CreateAuthorRequest;
 import pt.psoft.g1.psoftg1.authormanagement.services.UpdateAuthorRequest;
 import pt.psoft.g1.psoftg1.shared.model.EntityWithPhoto;
