@@ -1,32 +1,16 @@
-package pt.psoft.g1.psoftg1.bookmanagement.model;
+package pt.psoft.g1.psoftg1.unitTests.bookmanagement.model;
 
 import org.junit.jupiter.api.Test;
+import pt.psoft.g1.psoftg1.bookmanagement.model.Description;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-class TitleTest {
+class DescriptionTest {
 
     @Test
-    void ensureTitleMustNotBeNull() {
-        assertThrows(IllegalArgumentException.class, () -> new Title(null));
-    }
-
-    @Test
-    void ensureTitleMustNotBeBlank() {
-        assertThrows(IllegalArgumentException.class, () -> new Title(""));
-    }
-
-    @Test
-    void ensureTitleCantStartWithWhitespace() {
-        final var title = new Title(" Some title");
-        assertEquals("Some title", title.toString());
-    }
-
-    @Test
-    void ensureTitleCantEndWithWhitespace() {
-        final var title = new Title("Some title ");
-        assertEquals("Some title", title.toString());
+    void ensureDescriptionCanBeNull() {
+        assertDoesNotThrow(() -> new Description(null));
     }
 
 
@@ -34,8 +18,8 @@ class TitleTest {
      * Text from <a href="https://www.lipsum.com/">Lorem Ipsum</a> generator.
      */
     @Test
-    void ensureTitleMustNotBeOversize() {
-        assertThrows(IllegalArgumentException.class, () -> new Title("\n" +
+    void ensureDescriptionMustNotBeOversize() {
+        assertThrows(IllegalArgumentException.class, () -> new Description("\n" +
                 "\n" +
                 "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam venenatis semper nisl, eget condimentum felis tempus vitae. Morbi tempus turpis a felis luctus, ut feugiat tortor mattis. Duis gravida nunc sed augue ultricies tempor. Phasellus ultrices in dolor id viverra. Sed vitae odio ut est vestibulum lacinia sed sed neque. Mauris commodo, leo in tincidunt porta, justo mi commodo arcu, non ultricies ipsum dolor a mauris. Pellentesque convallis vulputate nisl, vel commodo felis ornare nec. Aliquam tristique diam dignissim hendrerit auctor. Mauris nec dolor hendrerit, dignissim urna non, pharetra quam. Sed diam est, convallis nec efficitur eu, sollicitudin ac nibh. In orci leo, dapibus ut eleifend et, suscipit sit amet felis. Integer lectus quam, tristique posuere vulputate sed, tristique eget sem.\n" +
                 "\n" +
@@ -55,16 +39,16 @@ class TitleTest {
     }
 
     @Test
-    void ensureTitleIsSet() {
-        final var title = new Title("Some title");
-        assertEquals("Some title", title.toString());
+    void ensureDescriptionIsSet() {
+        final var description = new Description("Some description");
+        assertEquals("Some description", description.toString());
     }
 
     @Test
-    void ensureTitleIsChanged() {
-        final var title = new Title("Some title");
-        title.setTitle("Some other title");
-        assertEquals("Some other title", title.toString());
+    void ensureDescriptionIsChanged() {
+        final var description = new Description("Some description");
+        description.setDescription("Some other description");
+        assertEquals("Some other description", description.toString());
     }
 
 }

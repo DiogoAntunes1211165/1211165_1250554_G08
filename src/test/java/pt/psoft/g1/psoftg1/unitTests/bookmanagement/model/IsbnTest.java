@@ -1,6 +1,7 @@
-package pt.psoft.g1.psoftg1.bookmanagement.model;
+package pt.psoft.g1.psoftg1.unitTests.bookmanagement.model;
 
 import org.junit.jupiter.api.Test;
+import pt.psoft.g1.psoftg1.bookmanagement.model.Isbn;
 
 import static org.junit.jupiter.api.Assertions.*;
 
