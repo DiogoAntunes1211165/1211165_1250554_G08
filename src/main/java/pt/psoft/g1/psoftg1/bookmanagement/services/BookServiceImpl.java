@@ -37,15 +37,25 @@ public class BookServiceImpl implements BookService {
 	private final PhotoRepository photoRepository;
 	private final ReaderRepository readerRepository;
 
+
+
+    private final GoogleBooksLookupService googleBooksLookupService;
+
 	@Value("${suggestionsLimitPerGenre}")
 	private long suggestionsLimitPerGenre;
 
 	@Override
 	public Book create(CreateBookRequest request, String isbn) {
 
-		if(bookRepository.findByIsbn(isbn).isPresent()){
-			throw new ConflictException("Book with ISBN " + isbn + " already exists");
-		}
+        // Se o ISBN não foi fornecido, tenta buscar pelo título
+        if (isbn == null || isbn.isEmpty()) {
+            isbn = googleBooksLookupService.findIsbnByTitle(request.getTitle())
+                    .orElseThrow(() -> new NotFoundException("ISBN not found for title: " + request.getTitle()));
+        }
+
+        if(bookRepository.findByIsbn(isbn).isPresent()){
+            throw new ConflictException("Book with ISBN " + isbn + " already exists");
+        }
 
 		List<Long> authorNumbers = request.getAuthors();
 		List<Author> authors = new ArrayList<>();

@@ -39,6 +39,7 @@ public class Book extends EntityWithPhoto {
     private void setTitle(String title) {this.title = new Title(title);}
 
     private void setIsbn(String isbn) {
+        if(isbn != null)
         this.isbn = new Isbn(isbn);
     }
 
@@ -52,7 +53,8 @@ public class Book extends EntityWithPhoto {
 
     public Book(String isbn, String title, String description, Genre genre, List<Author> authors, String photoURI) {
         setTitle(title);
-        setIsbn(isbn);
+        if(isbn != null)
+            setIsbn(isbn);
         if(description != null)
             setDescription(description);
         if(genre==null)
