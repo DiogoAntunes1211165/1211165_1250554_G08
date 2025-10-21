@@ -16,11 +16,11 @@ import pt.psoft.g1.psoftg1.shared.model.relational.PhotoEntity;
 public interface AuthorEntityMapper {
 
     @Mapping(target = "authorNumber", source = "authorNumber")
-    Author toDomain(AuthorEntity authorEntity);
+    Author toDomain(AuthorEntity authorEntity); // convert AuthorEntity to Author
 
 
 
-    AuthorEntity toEntity(Author author);
+    AuthorEntity toEntity(Author author); // convert Author to AuthorEntity
 
     default String map(Photo photo) {
         if (photo == null) {
