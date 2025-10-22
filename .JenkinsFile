@@ -4,35 +4,56 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Use the built-in SCM checkout in multibranch pipelines
+                // Checkout the branch Jenkins is building
                 checkout scm
             }
         }
 
-        stage('Clean') {
-            when {
-                expression { env.BRANCH_NAME == 'dev' }
-            }
+        stage('Build (skip tests)') {
             steps {
-                echo 'Cleaning the workspace...'
-                sh 'mvn clean'
+                script {
+                    if (isUnix()) {
+                        // Use the wrapper if present, fall back to system mvn
+                        sh './mvnw -DskipTests clean package || mvn -DskipTests clean package'
+                    } else {
+                        // Windows agent: use mvnw.cmd or mvn
+                        bat "mvnw.cmd -DskipTests clean package || mvn -DskipTests clean package"
+                    }
+                }
             }
         }
 
-        stage('Build') {
-            when {
-                expression { env.BRANCH_NAME == 'dev' }
-            }
+        stage('Run') {
             steps {
-                echo 'Building Maven project (tests skipped)...'
-                sh 'mvn install -DskipTests'
+                script {
+                    if (isUnix()) {
+                        // Start the jar in background, capture pid and show a short tail of log
+                        sh 'nohup java -jar target/*.jar > app.log 2>&1 & echo $! > app.pid'
+                        sh 'sleep 5 || true'
+                        sh 'echo "--- App log (last 50 lines) ---" && tail -n 50 app.log || true'
+                    } else {
+                        // Windows: start the jar in background (best-effort). We avoid complex PID handling here.
+                        bat 'start /B cmd /c "java -jar target\\*.jar > app.log 2>&1"'
+                        bat 'timeout /T 5 /NOBREAK'
+                        // Show a short tail of the log using PowerShell if available
+                        bat 'powershell -Command "if (Test-Path \"app.log\") { Get-Content app.log -Tail 50 } else { Write-Host \"app.log not found yet\" }"
+                    }
+                }
             }
         }
     }
 
     post {
         always {
-            echo 'Build finished'
+            script {
+                // Best-effort cleanup on Unix agents (kill the PID we stored). Windows cleanup is omitted to avoid killing unrelated Java processes.
+                if (isUnix()) {
+                    sh 'if [ -f app.pid ]; then kill $(cat app.pid) || true; rm -f app.pid || true; fi'
+                } else {
+                    echo 'Windows agent: pipeline finished (no automatic Java process kill to avoid killing unrelated processes)'
+                }
+                echo 'Pipeline finished'
+            }
         }
     }
 }
