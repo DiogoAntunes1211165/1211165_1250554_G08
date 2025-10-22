@@ -4,14 +4,14 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Checkout code from dev branch
-                git branch: 'dev', url: 'https://github.com/DiogoAntunes1211165/1211165_1250554_G08.git'
+                // Use the built-in SCM checkout in multibranch pipelines
+                checkout scm
             }
         }
 
         stage('Clean') {
             when {
-                branch 'dev'
+                expression { env.BRANCH_NAME == 'dev' }
             }
             steps {
                 echo 'Cleaning the workspace...'
@@ -21,7 +21,7 @@ pipeline {
 
         stage('Build') {
             when {
-                branch 'dev'
+                expression { env.BRANCH_NAME == 'dev' }
             }
             steps {
                 echo 'Building Maven project (tests skipped)...'
