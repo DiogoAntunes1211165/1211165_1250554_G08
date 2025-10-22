@@ -1,11 +1,6 @@
 pipeline {
     agent any
 
-    // Only run on dev branch
-    when {
-        branch 'dev'
-    }
-
     stages {
         stage('Checkout') {
             steps {
@@ -15,6 +10,9 @@ pipeline {
         }
 
         stage('Clean') {
+            when {
+                branch 'dev'
+            }
             steps {
                 echo 'Cleaning the workspace...'
                 sh 'mvn clean'
@@ -22,6 +20,9 @@ pipeline {
         }
 
         stage('Build') {
+            when {
+                branch 'dev'
+            }
             steps {
                 echo 'Building Maven project (tests skipped)...'
                 sh 'mvn install -DskipTests'
