@@ -2,11 +2,11 @@ pipeline {
     agent any
 
     options {
-        skipDefaultCheckout(true)
+        skipDefaultCheckout(true) // Vamos fazer checkout manual
     }
 
     stages {
-        stage('Clean') {
+        stage('Clean Workspace') {
             steps {
                 echo 'Cleaning workspace...'
                 cleanWs()
@@ -20,10 +20,18 @@ pipeline {
             }
         }
 
-        stage('Build') {
+        stage('Build JAR') {
             steps {
-                echo 'Building Maven project (skipping tests)...'
+                echo 'Building Maven project and generating JAR (skipping tests)...'
                 sh 'mvn clean package -DskipTests'
+            }
+        }
+
+        stage('Archive Artifact') {
+            steps {
+                echo 'Archiving generated JAR...'
+                // Assumindo que o JAR fica em target/*.jar
+                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
             }
         }
     }
