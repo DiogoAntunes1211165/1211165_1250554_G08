@@ -11,6 +11,7 @@ import pt.psoft.g1.psoftg1.authormanagement.model.Author;
 import pt.psoft.g1.psoftg1.bookmanagement.model.*;
 import pt.psoft.g1.psoftg1.bookmanagement.repositories.BookRepository;
 import lombok.RequiredArgsConstructor;
+import pt.psoft.g1.psoftg1.bookmanagement.services.google.IsbnLookupService;
 import pt.psoft.g1.psoftg1.genremanagement.repositories.GenreRepository;
 import pt.psoft.g1.psoftg1.authormanagement.repositories.AuthorRepository;
 import pt.psoft.g1.psoftg1.exceptions.ConflictException;
@@ -37,9 +38,7 @@ public class BookServiceImpl implements BookService {
 	private final PhotoRepository photoRepository;
 	private final ReaderRepository readerRepository;
 
-
-
-    private final GoogleBooksLookupService googleBooksLookupService;
+    private final IsbnLookupService isbnLookupService;
 
 	@Value("${suggestionsLimitPerGenre}")
 	private long suggestionsLimitPerGenre;
@@ -48,26 +47,27 @@ public class BookServiceImpl implements BookService {
 	public Book create(CreateBookRequest request, String isbn) {
 
         // Se o ISBN não foi fornecido, tenta buscar pelo título
-        if (isbn == null || isbn.isEmpty()) {
-            isbn = googleBooksLookupService.findIsbnByTitle(request.getTitle())
-                    .orElseThrow(() -> new NotFoundException("ISBN not found for title: " + request.getTitle()));
-        }
+        if (isbn == null || isbn.isBlank()) {
+            // valida título antes do lookup
+            if (request == null || request.getTitle() == null || request.getTitle().isBlank()) {
+                throw new NotFoundException("ISBN not provided and title is empty");
+            }
+             isbn = isbnLookupService.findIsbnByTitle(request.getTitle())
+                     .orElseThrow(() -> new NotFoundException("ISBN not found for title: " + request.getTitle()));
+         }
 
-        if(bookRepository.findByIsbn(isbn).isPresent()){
-            throw new ConflictException("Book with ISBN " + isbn + " already exists");
-        }
+         if(bookRepository.findByIsbn(isbn).isPresent()){
+             throw new ConflictException("Book with ISBN " + isbn + " already exists");
+         }
 
-		List<Long> authorNumbers = request.getAuthors();
 		List<Author> authors = new ArrayList<>();
-		for (Long authorNumber : authorNumbers) {
-
-			Optional<Author> temp = authorRepository.findByAuthorNumber(authorNumber.toString());
-			if(temp.isEmpty()) {
-				continue;
+		List<Long> authorNumbers = request.getAuthors();
+		if (authorNumbers != null) {
+			for (Long authorNumber : authorNumbers) {
+				if (authorNumber == null) continue;
+				Optional<Author> temp = authorRepository.findByAuthorNumber(authorNumber.toString());
+				temp.ifPresent(authors::add);
 			}
-
-			Author author = temp.get();
-			authors.add(author);
 		}
 
 		MultipartFile photo = request.getPhoto();

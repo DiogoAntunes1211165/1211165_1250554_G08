@@ -1,6 +1,5 @@
-package pt.psoft.g1.psoftg1.bookmanagement.services;
+package pt.psoft.g1.psoftg1.bookmanagement.services.google;
 
-import javax.swing.text.html.Option;
 import java.util.Optional;
 
 public interface IsbnLookupService {
