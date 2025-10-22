@@ -18,7 +18,7 @@ import java.util.Optional;
 public class GoogleBooksIsbnLookupService implements IsbnLookupService {
 
     private static final Logger logger = LoggerFactory.getLogger(GoogleBooksIsbnLookupService.class);
-    private static final String GOOGLE_BOOKS_API = "https://www.googleapis.com/books/v1/volumes?q=intitle:%s&maxResults=5";
+    private static final String GOOGLE_BOOKS_API = "https://www.googleapis.com/books/v1/volumes?q=intitle:%s&maxResults=1";
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -33,7 +33,12 @@ public class GoogleBooksIsbnLookupService implements IsbnLookupService {
         try {
             String q = URLEncoder.encode(queryTitle, StandardCharsets.UTF_8);
             String url = String.format(GOOGLE_BOOKS_API, q);
+            logger.debug("GoogleBooks encoded query='{}', url='{}'", q, url);
+
+
             String resp = restTemplate.getForObject(url, String.class);
+
+
             if (resp == null || resp.isBlank()) {
                 logger.debug("GoogleBooks response empty for title='{}'", queryTitle);
                 return Optional.empty();
