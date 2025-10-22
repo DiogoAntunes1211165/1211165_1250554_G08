@@ -1,0 +1,37 @@
+pipeline {
+    agent any
+
+    // Only run on dev branch
+    when {
+        branch 'dev'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                // Checkout code from dev branch
+                git branch: 'dev', url: 'https://github.com/DiogoAntunes1211165/1211165_1250554_G08.git'
+            }
+        }
+
+        stage('Clean') {
+            steps {
+                echo 'Cleaning the workspace...'
+                sh 'mvn clean'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo 'Building Maven project (tests skipped)...'
+                sh 'mvn install -DskipTests'
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Build finished'
+        }
+    }
+}
