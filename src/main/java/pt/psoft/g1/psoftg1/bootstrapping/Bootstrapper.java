@@ -1,6 +1,8 @@
 package pt.psoft.g1.psoftg1.bootstrapping;
 
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
@@ -25,6 +27,7 @@ import pt.psoft.g1.psoftg1.shared.services.ForbiddenNameService;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Component
@@ -33,6 +36,22 @@ import java.util.Optional;
 @PropertySource({"classpath:config/library.properties"})
 @Order(2)
 public class Bootstrapper implements CommandLineRunner {
+    private static final Logger logger = LoggerFactory.getLogger(Bootstrapper.class);
+
+
+    private static final Map<String, String> FALLBACK_ISBNS = Map.ofEntries(
+            Map.entry("O País das Pessoas de Pernas Para o Ar", "9789720014979"),
+            Map.entry("Como se Desenha Uma Casa", "9789720706386"),
+            Map.entry("C e Algoritmos", "9789723716160"),
+            Map.entry("Introdução ao Desenvolvimento Moderno para a Web", "9789895612864"),
+            Map.entry("O Principezinho", "9782722203402"),
+            Map.entry("A Criada Está a Ver", "9789722328296"),
+            Map.entry("O Hobbit", "9789895702756"),
+            Map.entry("Histórias de Vigaristas e Canalhas", "9789897776090"),
+            Map.entry("Histórias de Aventureiros e Patifes", "9789896379636"),
+            Map.entry("Windhaven", "9789896378905")
+    );
+
     @Value("${lendingDurationInDays}")
     private int lendingDurationInDays;
     @Value("${fineValuePerDayInCents}")
@@ -46,21 +65,23 @@ public class Bootstrapper implements CommandLineRunner {
 
     private final ForbiddenNameService forbiddenNameService;
 
-    private final IsbnLookupService isbnLookupService;
+    private final List<IsbnLookupService> isbnLookupServices;
 
     @Override
     @Transactional
     public void run(final String... args) {
-        System.out.println("Bootstrapping data...");
+        logger.info("Bootstrapping data...");
 
         createAuthors();
         createGenres();
         createBooks();
+
+
         loadForbiddenNames();
         createLendings();
-       /* createPhotos(); */
+        /* createPhotos(); */
 
-        System.out.println("Bootstrapping data complete.");
+        logger.info("Bootstrapping data complete.");
     }
 
     private void createAuthors() {
@@ -156,6 +177,9 @@ public class Bootstrapper implements CommandLineRunner {
         }
     }
 
+    // small record to carry ISBN and the service that provided it
+    private static record IsbnResult(String isbn, String service) {}
+
     protected void createBooks() {
         // Início do método createBooks: garante que um conjunto mínimo de livros existe na BD.
         // Recupera o género 'Infantil' (pode ser usado por vários livros) ou lança exceção se não existir.
@@ -164,14 +188,14 @@ public class Bootstrapper implements CommandLineRunner {
         // Pesquisa autores pelo nome "Manuel Antonio Pina" e guarda a lista (pode estar vazia).
         List<Author> author = authorRepository.searchByNameName("Manuel Antonio Pina");
 
-        // Função auxiliar: tenta obter um ISBN do serviço externo; se falhar usa o fallback passado.
+        // Função auxiliar: tenta obter um ISBN usando a lista de serviços em ordem; se falhar usa o fallback passado.
         java.util.function.BiFunction<String, String, String> resolveIsbn = (t, fallback) -> {
-            Optional<String> apiIsbn = isbnLookupService.findIsbnByTitle(t);
-            if (apiIsbn.isPresent()) {
-                System.out.println("Título: " + t + ", ISBN from API: " + apiIsbn.get());
-                return apiIsbn.get();
+            Optional<IsbnResult> apiIsbn = tryFindIsbn(t); // agora retorna ISBN + service
+            if (apiIsbn.isPresent()) { // Se obteve um ISBN válido, usa-o e loga o serviço
+                logger.info("Título: {} , ISBN from API: {} (service={})", t, apiIsbn.get().isbn(), apiIsbn.get().service());
+                return apiIsbn.get().isbn();
             } else {
-                System.out.println("Título: " + t + ", ISBN fallback used: " + fallback);
+                logger.info("Título: {} , ISBN fallback used: {}", t, fallback);
                 return fallback;
             }
         };
@@ -179,7 +203,7 @@ public class Bootstrapper implements CommandLineRunner {
         // 1 - título do primeiro livro
         // Define a string do título que vamos criar/procurar.
         String title1 = "O País das Pessoas de Pernas Para o Ar";
-        // Resolve o ISBN para o título (usa serviço externo ou fallback se não houver resultado).
+        // Resolve o ISBN para o título (usa serviços externos ou fallback se não houver resultado).
         String isbn1 = resolveIsbn.apply(title1, "9789720014979");
         // Verifica se já existe um livro com esse ISBN; se não existir cria-o.
         if (bookRepository.findByIsbn(isbn1).isEmpty()) {
@@ -412,6 +436,33 @@ public class Bootstrapper implements CommandLineRunner {
         }
     }
 
+    // Método auxiliar que itera pela lista de IsbnLookupService na ordem injetada e retorna o primeiro ISBN encontrado e o nome do serviço.
+    private Optional<IsbnResult> tryFindIsbn(String title) {
+        if (title == null || title.isBlank()) return Optional.empty();
+
+        if (isbnLookupServices == null || isbnLookupServices.isEmpty()) {
+            logger.warn("No IsbnLookupService beans available to query for title: {}", title);
+            return Optional.empty();
+        }
+
+        logger.info("Configured IsbnLookupServices: {}", isbnLookupServices.stream().map(IsbnLookupService::getServiceName).toList());
+
+        for (IsbnLookupService svc : isbnLookupServices) {
+            try {
+                Optional<String> res = svc.findIsbnByTitle(title);
+                if (res.isPresent()) {
+                    logger.info("Found ISBN from service '{}' for title '{}': {}", svc.getServiceName(), title, res.get());
+                    return Optional.of(new IsbnResult(res.get(), svc.getServiceName()));
+                } else {
+                    logger.debug("Service '{}' returned no result for title '{}'", svc.getServiceName(), title);
+                }
+            } catch (Exception e) {
+                logger.warn("IsbnLookupService '{}' failed for title '{}': {}", svc.getServiceName(), title, e.getMessage());
+            }
+        }
+        return Optional.empty();
+    }
+
     protected void loadForbiddenNames() {
         String fileName = "forbiddenNames.txt";
         forbiddenNameService.loadDataFromFile(fileName);
@@ -421,7 +472,7 @@ public class Bootstrapper implements CommandLineRunner {
         int i;
         int seq = 0;
         // Instead of relying on hard-coded ISBNs being present, try to find the books by title first.
-        // If not present by title, ask the external ISBN lookup service for an ISBN and try to find by that.
+        // If not present by title, ask the external ISBN lookup services (in order) for an ISBN and try to find by that.
         // If any required book is still missing, fail fast with a clear message.
         List<String> requiredTitles = List.of(
                 "O País das Pessoas de Pernas Para o Ar",
@@ -439,21 +490,44 @@ public class Bootstrapper implements CommandLineRunner {
         List<Book> books = new ArrayList<>();
         List<String> missing = new ArrayList<>();
 
+        // verifica se cada titula da lista requiredTitles está presente no bookRepository
         for (String title : requiredTitles) {
-            // 1) try to find by exact title in repository
             List<Book> foundByTitle = bookRepository.findByTitle(title);
             if (foundByTitle != null && !foundByTitle.isEmpty()) {
                 books.add(foundByTitle.get(0));
                 continue;
             }
 
-            // 2) ask external service for an ISBN for this title
-            Optional<String> isbnOpt = isbnLookupService.findIsbnByTitle(title);
+            // Se não encontrado pelo título, tenta um ISBN de fallback conhecido
+            String fallbackIsbn = FALLBACK_ISBNS.get(title);
+            if (fallbackIsbn != null) {
+                Optional<Book> foundByFallback = bookRepository.findByIsbn(fallbackIsbn);
+                if (foundByFallback.isPresent()) {
+                    books.add(foundByFallback.get());
+                    continue;
+                }
+            }
+
+            // 2) tenta obter ISBN via serviços externos
+            Optional<IsbnResult> isbnOpt = tryFindIsbn(title);
             if (isbnOpt.isPresent()) {
-                Optional<Book> foundByIsbn = bookRepository.findByIsbn(isbnOpt.get());
+                // log which service provided the ISBN
+                logger.info("Lookup provided ISBN '{}' via service='{}' for title='{}'", isbnOpt.get().isbn(), isbnOpt.get().service(), title);
+                Optional<Book> foundByIsbn = bookRepository.findByIsbn(isbnOpt.get().isbn());
                 if (foundByIsbn.isPresent()) {
                     books.add(foundByIsbn.get());
                     continue;
+                } else {
+                    // If the API returned an ISBN that isn't in the DB, try the fallback ISBN as a last resort.
+                    if (fallbackIsbn != null) {
+                        logger.debug("ISBN '{}' not found in DB; trying fallback ISBN '{}' for title '{}'", isbnOpt.get().isbn(), fallbackIsbn, title);
+                        Optional<Book> foundByFallback2 = bookRepository.findByIsbn(fallbackIsbn);
+                        if (foundByFallback2.isPresent()) {
+                            logger.info("Found book for title '{}' using fallback ISBN '{}'", title, fallbackIsbn);
+                            books.add(foundByFallback2.get());
+                            continue;
+                        }
+                    }
                 }
             }
 
@@ -461,8 +535,8 @@ public class Bootstrapper implements CommandLineRunner {
             missing.add(title);
         }
 
-        if (!missing.isEmpty()) {
-            throw new IllegalStateException("Required books not found in database (and ISBN lookup failed or book not stored): " + missing);
+        if (!missing.isEmpty()) { // se algum livro obrigatório está em falta, lança exceção
+            throw new IllegalStateException("Required books not found in database (and ISBN lookup failed or book not stored): " + missing); //
         }
 
         final var readerDetails1 = readerRepository.findByReaderNumber("2025/1");
@@ -617,6 +691,7 @@ public class Bootstrapper implements CommandLineRunner {
             }
         }
     }
+
 
     private void createPhotos() {
         /*Optional<Photo> photoJoao = photoRepository.findByPhotoFile("foto-joao.jpg");

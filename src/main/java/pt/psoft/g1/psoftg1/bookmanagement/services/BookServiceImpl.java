@@ -1,5 +1,7 @@
 package pt.psoft.g1.psoftg1.bookmanagement.services;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.domain.PageRequest;
@@ -32,13 +34,16 @@ import java.util.Optional;
 @PropertySource({"classpath:config/library.properties"})
 public class BookServiceImpl implements BookService {
 
+    private static final Logger logger = LoggerFactory.getLogger(BookServiceImpl.class);
+
 	private final BookRepository bookRepository;
 	private final GenreRepository genreRepository;
 	private final AuthorRepository authorRepository;
 	private final PhotoRepository photoRepository;
 	private final ReaderRepository readerRepository;
 
-    private final IsbnLookupService isbnLookupService;
+    // Substitui a injeção única por uma lista para suportar múltiplos providers (Google, OpenLibrary, ...)
+    private final List<IsbnLookupService> isbnLookupServices;
 
 	@Value("${suggestionsLimitPerGenre}")
 	private long suggestionsLimitPerGenre;
@@ -52,8 +57,9 @@ public class BookServiceImpl implements BookService {
             if (request == null || request.getTitle() == null || request.getTitle().isBlank()) {
                 throw new NotFoundException("ISBN not provided and title is empty");
             }
-             isbn = isbnLookupService.findIsbnByTitle(request.getTitle())
-                     .orElseThrow(() -> new NotFoundException("ISBN not found for title: " + request.getTitle()));
+            // tenta obter via providers configurados (por ordem)
+            Optional<String> found = findIsbnFromProviders(request.getTitle());
+            isbn = found.orElseThrow(() -> new NotFoundException("ISBN not found for title: " + request.getTitle()));
          }
 
          if(bookRepository.findByIsbn(isbn).isPresent()){
@@ -85,6 +91,29 @@ public class BookServiceImpl implements BookService {
         return bookRepository.save(newBook);
 	}
 
+    // Método auxiliar que tenta todos os IsbnLookupService em ordem até obter um ISBN.
+    private Optional<String> findIsbnFromProviders(String title) {
+        if (title == null || title.isBlank()) return Optional.empty();
+        if (isbnLookupServices == null || isbnLookupServices.isEmpty()) {
+            logger.warn("No IsbnLookupService beans available to query for title: {}", title);
+            return Optional.empty();
+        }
+
+        for (IsbnLookupService svc : isbnLookupServices) {
+            try {
+                Optional<String> res = svc.findIsbnByTitle(title);
+                if (res.isPresent()) {
+                    logger.info("BookService: found ISBN '{}' via provider '{}' for title '{}'", res.get(), svc.getServiceName(), title);
+                    return res;
+                } else {
+                    logger.debug("BookService: provider '{}' returned no result for title '{}'", svc.getServiceName(), title);
+                }
+            } catch (Exception e) {
+                logger.warn("BookService: provider '{}' failed for title '{}': {}", svc.getServiceName(), title, e.getMessage());
+            }
+        }
+        return Optional.empty();
+    }
 
 	@Override
 	public Book update(UpdateBookRequest request, String currentVersion) {
