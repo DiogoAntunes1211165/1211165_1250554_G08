@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     options {
-        skipDefaultCheckout(true) // Vamos fazer checkout manual
+        skipDefaultCheckout(true)
     }
 
     stages {
@@ -30,18 +30,27 @@ pipeline {
         stage('Archive Artifact') {
             steps {
                 echo 'Archiving generated JAR...'
-                // Assumindo que o JAR fica em target/*.jar
                 archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+            }
+        }
+
+        stage('Run Docker Compose') {
+            steps {
+                echo 'Stopping any existing containers...'
+                sh 'docker-compose -f docker-compose.dev.yml down --remove-orphans'
+
+                echo 'Starting Docker container for dev environment...'
+                sh 'docker-compose -f docker-compose.dev.yml up -d --build'
             }
         }
     }
 
     post {
         success {
-            echo 'Build completed successfully on branch: dev'
+            echo '✅ Build completed successfully on branch: dev'
         }
         failure {
-            echo 'Build failed.'
+            echo '❌ Build failed.'
         }
         always {
             echo 'Pipeline finished.'
