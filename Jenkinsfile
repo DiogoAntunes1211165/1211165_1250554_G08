@@ -1,8 +1,9 @@
 pipeline {
     agent any
 
-    options {
-        skipDefaultCheckout(true)
+    environment {
+        // Imagem Docker que contém Maven + JDK 17
+        DOCKER_IMAGE = 'maven:3.9.2-eclipse-temurin-17-alpine'
     }
 
     stages {
@@ -22,35 +23,39 @@ pipeline {
 
         stage('Build JAR') {
             steps {
-                echo 'Building Maven project and generating JAR (skipping tests)...'
-                sh 'mvn clean package -DskipTests'
+                echo 'Building Maven project inside Docker container...'
+                sh """
+                docker run --rm -v \$(pwd):/app -w /app ${DOCKER_IMAGE} mvn clean package -DskipTests
+                """
             }
         }
 
-        stage('Archive Artifact') {
+        stage('Build Docker Image') {
             steps {
-                echo 'Archiving generated JAR...'
-                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+                echo 'Building Docker image for the app inside Docker container...'
+                sh """
+                docker build -t psoft-g1:latest .
+                """
             }
         }
 
-        stage('Run Docker Compose') {
+        stage('Deploy') {
             steps {
-                echo 'Stopping any existing containers...'
-                sh 'docker-compose -f docker-compose.dev.yml down --remove-orphans'
-
-                echo 'Starting Docker container for dev environment...'
-                sh 'docker-compose -f docker-compose.dev.yml up -d --build'
+                echo 'Deploying Docker container...'
+                sh """
+                docker-compose -f docker-compose.dev.yml down --remove-orphans
+                docker-compose -f docker-compose.dev.yml up -d --build
+                """
             }
         }
     }
 
     post {
         success {
-            echo '✅ Build completed successfully on branch: dev'
+            echo 'Pipeline completed successfully!'
         }
         failure {
-            echo '❌ Build failed.'
+            echo 'Pipeline failed.'
         }
         always {
             echo 'Pipeline finished.'
