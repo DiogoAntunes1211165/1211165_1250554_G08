@@ -14,3 +14,5 @@ services:
       - DB_NAME=psoft-g1
       - DB_USER=grupo08
       - DB_PASSWORD=Grupo8arqsoft_
+
+
