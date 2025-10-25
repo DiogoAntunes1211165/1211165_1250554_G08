@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Based on https://www.baeldung.com/spring-boot-testing
  * <p>Adaptations to Junit 5 with ChatGPT
  */
-/*@ExtendWith(SpringExtension.class)
+@ExtendWith(SpringExtension.class)
 @DataJpaTest
 @Profile("sqlServer")
 public class AuthorRepositoryIntegrationTest {
@@ -42,4 +42,4 @@ public class AuthorRepositoryIntegrationTest {
         assertThat(list.get(0).getName())
                 .isEqualTo(alex.getName());
     }
-}*/
+}

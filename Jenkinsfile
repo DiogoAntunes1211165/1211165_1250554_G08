@@ -39,6 +39,16 @@ pipeline {
             }
         }
 
+        stage('Run Integration Tests') {
+            steps {
+                echo 'Running integration tests inside Docker container...'
+                sh """
+                docker run --rm -v \$(pwd):/app -w /app ${DOCKER_IMAGE} \
+                mvn -Dtest=pt.psoft.g1.psoftg1.integrationTests.**.*Test test
+                """
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 echo 'Building Docker image for the app inside Docker container...'

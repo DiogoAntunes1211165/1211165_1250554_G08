@@ -1,4 +1,4 @@
-/*package pt.psoft.g1.psoftg1.unitTests.lendingmanagement.services;
+package pt.psoft.g1.psoftg1.integrationTests.authormanagement;
 
 import org.hibernate.StaleObjectStateException;
 import org.junit.jupiter.api.AfterEach;
@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @Transactional
 @SpringBootTest
-/*class LendingServiceImplTest {
+class LendingServiceImplTest {
     @Autowired
     private LendingService lendingService;
     @Autowired
@@ -117,13 +117,13 @@ import static org.junit.jupiter.api.Assertions.*;
         assertThat(lendingService.findByLendingNumber(LocalDate.now().getYear() + "/999")).isPresent();
         assertThat(lendingService.findByLendingNumber(LocalDate.now().getYear() + "/1")).isEmpty();
     }
-/*
+
     @Test
     void testListByReaderNumberAndIsbn() {
 
     }
- */
-  /*  @Test
+
+    @Test
     void testCreate() {
         var request = new CreateLendingRequest("9782826012092",
                 LocalDate.now().getYear() + "/1");
@@ -152,7 +152,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
     }
 
-  /*  @Test
+   @Test
     void testSetReturned() {
         int year = 2024, seq = 888;
         var notReturnedLending = lendingRepository.save(Lending.newBootstrappingLending(book,
@@ -169,8 +169,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
         assertDoesNotThrow(
                 () -> lendingService.setReturned(year + "/" + seq, request, notReturnedLending.getVersion()));
-    } */
-/*
+    }
+
     @Test
     void testGetAverageDuration() {
     }
@@ -178,6 +178,7 @@ import static org.junit.jupiter.api.Assertions.*;
     @Test
     void testGetOverdue() {
     }
+}
 
- */
+
 
