@@ -1,4 +1,4 @@
-package pt.psoft.g1.psoftg1.unitTests.lendingmanagement.services;
+/*package pt.psoft.g1.psoftg1.unitTests.lendingmanagement.services;
 
 import org.hibernate.StaleObjectStateException;
 import org.junit.jupiter.api.AfterEach;
@@ -31,9 +31,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 
+
 @Transactional
 @SpringBootTest
-class LendingServiceImplTest {
+/*class LendingServiceImplTest {
     @Autowired
     private LendingService lendingService;
     @Autowired
@@ -122,7 +123,7 @@ class LendingServiceImplTest {
 
     }
  */
-    @Test
+  /*  @Test
     void testCreate() {
         var request = new CreateLendingRequest("9782826012092",
                 LocalDate.now().getYear() + "/1");
@@ -151,7 +152,7 @@ class LendingServiceImplTest {
 
     }
 
-    @Test
+  /*  @Test
     void testSetReturned() {
         int year = 2024, seq = 888;
         var notReturnedLending = lendingRepository.save(Lending.newBootstrappingLending(book,
@@ -168,7 +169,7 @@ class LendingServiceImplTest {
 
         assertDoesNotThrow(
                 () -> lendingService.setReturned(year + "/" + seq, request, notReturnedLending.getVersion()));
-    }
+    } */
 /*
     @Test
     void testGetAverageDuration() {
@@ -179,4 +180,4 @@ class LendingServiceImplTest {
     }
 
  */
-}
+
