@@ -27,47 +27,44 @@ public interface ReaderRepositorySQL extends CrudRepository<ReaderDetailsEntity,
     )
     List<ReaderDetailsEntity> findByPhoneNumber(@Param("phoneNumber") @NotNull String phoneNumber);
 
-    @Query(
-            value = "SELECT rd.* FROM reader_details rd JOIN reader u ON u.pk = rd.reader_pk WHERE u.username = :username",
-            nativeQuery = true
-    )
+    @Query("SELECT r " +
+            "FROM ReaderDetailsEntity r " +
+            "JOIN UserEntity u ON r.reader.id = u.id " +
+            "WHERE u.username = :username")
     Optional<ReaderDetailsEntity> findByUsername(@Param("username") @NotNull String username);
 
-    @Query(
-            value = "SELECT rd.* FROM reader_details rd JOIN reader u ON u.pk = rd.reader_pk WHERE u.pk = :userId",
-            nativeQuery = true
-    )
+
+
+    @Query("SELECT r " +
+            "FROM ReaderDetailsEntity r " +
+            "JOIN UserEntity u ON r.reader.id = u.id " +
+            "WHERE u.id = :userId")
     Optional<ReaderDetailsEntity> findByUserId(@Param("userId") @NotNull Long userId);
 
-    @Query(
-            value = "SELECT COUNT(rd.pk) FROM reader_details rd JOIN reader u ON u.pk = rd.reader_pk WHERE YEAR(u.created_at) = YEAR(GETDATE())",
-            nativeQuery = true
-    )
+    @Query("SELECT COUNT (rd) " +
+            "FROM ReaderDetailsEntity rd " +
+            "JOIN UserEntity u ON rd.reader.id = u.id " +
+            "WHERE YEAR(u.createdAt) = YEAR(CURRENT_DATE)")
     int getCountFromCurrentYear();
 
-    @Query(
-            value = "SELECT rd.* FROM reader_details rd JOIN lending l ON l.reader_details_pk = rd.pk GROUP BY rd.pk ORDER BY COUNT(l.pk) DESC",
-            nativeQuery = true
-    )
-   Page<ReaderDetailsEntity> findTopReaders(Pageable pageable);
+    @Query("SELECT rd " +
+            "FROM ReaderDetailsEntity rd " +
+            "JOIN LendingEntity l ON l.readerDetails.pk = rd.pk " +
+            "GROUP BY rd " +
+            "ORDER BY COUNT(l) DESC")
+    Page<ReaderDetailsEntity> findTopReaders(Pageable pageable);
 
-    @Query(
-            value = """
-        SELECT rd.*, COUNT(l.pk) AS lending_count
-        FROM reader_details rd
-        JOIN lending l ON l.reader_details_pk = rd.pk
-        JOIN book b ON b.pk = l.book_pk
-        JOIN genre g ON g.pk = b.genre_pk
-        WHERE g.genre = :genre
-          AND l.start_date >= :startDate
-          AND l.start_date <= :endDate
-        GROUP BY rd.pk
-        ORDER BY lending_count DESC
-        """,
-            nativeQuery = true
-    )
-    Page<ReaderBookCountDTO> findTopByGenre(Pageable pageable,
-                                            @Param("genre") String genre,
-                                            @Param("startDate") LocalDate startDate,
-                                            @Param("endDate") LocalDate endDate);
+    @Query("SELECT NEW pt.psoft.g1.psoftg1.readermanagement.services.ReaderBookCountDTO(rd, count(l)) " +
+            "FROM ReaderDetailsEntity rd " +
+            "JOIN LendingEntity l ON l.readerDetails.pk = rd.pk " +
+            "JOIN BookEntity b ON b.pk = l.book.pk " +
+            "JOIN GenreEntity g ON g.pk = b.genre.pk " +
+            "WHERE g.genre = :genre " +
+            "AND l.startDate >= :startDate " +
+            "AND l.startDate <= :endDate " +
+            "GROUP BY rd.pk " +
+            "ORDER BY COUNT(l.pk) DESC")
+    Page<ReaderBookCountDTO> findTopByGenre(Pageable pageable, String genre, LocalDate startDate, LocalDate endDate);
 }
+
+
