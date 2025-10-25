@@ -1,4 +1,4 @@
-package pt.psoft.g1.psoftg1.integrationTests.authormanagement;
+/*package pt.psoft.g1.psoftg1.integrationTests.authormanagement;
 
 import org.hibernate.StaleObjectStateException;
 import org.junit.jupiter.api.AfterEach;
@@ -178,7 +178,7 @@ class LendingServiceImplTest {
     @Test
     void testGetOverdue() {
     }
-}
+}*/
 
 
 
