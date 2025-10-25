@@ -1,6 +1,7 @@
-package pt.psoft.g1.psoftg1.readermanagement.model;
+package pt.psoft.g1.psoftg1.unitTests.readermanagement.model;
 
 import org.junit.jupiter.api.Test;
+import pt.psoft.g1.psoftg1.readermanagement.model.PhoneNumber;
 
 import static org.junit.jupiter.api.Assertions.*;
 

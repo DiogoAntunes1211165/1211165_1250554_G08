@@ -2,7 +2,6 @@ pipeline {
     agent any
 
     environment {
-        // Imagem Docker que contém Maven + JDK 17
         DOCKER_IMAGE = 'maven:3.9.2-eclipse-temurin-17-alpine'
     }
 
@@ -18,6 +17,16 @@ pipeline {
             steps {
                 echo 'Cloning repository (branch: dev)...'
                 git branch: 'dev', url: 'https://github.com/DiogoAntunes1211165/1211165_1250554_G08.git'
+            }
+        }
+
+        stage('Run Unit Tests') {
+            steps {
+                echo 'Running only unit tests inside Docker container...'
+                sh """
+                docker run --rm -v \$(pwd):/app -w /app ${DOCKER_IMAGE} \
+                mvn -Dtest=pt.psoft.g1.psoftg1.unitTests.**.*Test test
+                """
             }
         }
 
