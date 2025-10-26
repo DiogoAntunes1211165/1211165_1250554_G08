@@ -40,7 +40,7 @@ public class Book extends EntityWithPhoto {
 
     private void setIsbn(String isbn) {
         if(isbn != null)
-        this.isbn = new Isbn(isbn);
+            this.isbn = new Isbn(isbn);
     }
 
     private void setDescription(String description) {this.description = new Description(description); }
@@ -49,12 +49,18 @@ public class Book extends EntityWithPhoto {
 
     private void setAuthors(List<Author> authors) {this.authors = authors; }
 
-    public String getDescription(){ return this.description.toString(); }
+    public String getDescription(){ return this.description == null ? null : this.description.toString(); }
 
     public Book(String isbn, String title, String description, Genre genre, List<Author> authors, String photoURI) {
+        // Title validation happens inside Title#setTitle
         setTitle(title);
-        if(isbn != null)
-            setIsbn(isbn);
+
+        // ISBN must not be null — ensure tests expecting IllegalArgumentException are satisfied
+        if (isbn == null) {
+            throw new IllegalArgumentException("Isbn cannot be null");
+        }
+        setIsbn(isbn);
+
         if(description != null)
             setDescription(description);
         if(genre==null)
