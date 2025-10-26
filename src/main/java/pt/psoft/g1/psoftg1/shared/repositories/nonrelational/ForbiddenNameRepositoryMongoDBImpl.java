@@ -55,8 +55,11 @@ public class ForbiddenNameRepositoryMongoDBImpl implements ForbiddenNameReposito
 
     @Override
     public Optional<ForbiddenName> findByForbiddenName(String forbiddenName) {
-        return forbiddenNameDocumentPersistence.findByForbiddenName(forbiddenName)
-                .map(forbiddenNameDocumentMapper::toModel);
+        ForbiddenNameDocument forbiddenNameMongoDB = forbiddenNameDocumentPersistence.findByForbiddenName(forbiddenName).orElse(null);
+        if(forbiddenNameMongoDB == null) {
+            return Optional.empty();
+        }
+        return Optional.of(forbiddenNameDocumentMapper.toModel(forbiddenNameMongoDB));
     }
 
     @Override

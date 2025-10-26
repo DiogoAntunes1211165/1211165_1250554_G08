@@ -15,6 +15,7 @@ import pt.psoft.g1.psoftg1.usermanagement.model.nonrelational.ReaderDocument;
 
 import java.nio.file.InvalidPathException;
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -26,33 +27,40 @@ public class ReaderDetailsDocument extends EntityWithPhotoDocument {
     private String id;
 
     // Referência ao documento de Reader
-    @DBRef
+    @Getter @Setter
     @Field("reader")
     private ReaderDocument reader;
 
+    @Getter @Setter
     @Field("reader_number")
     private ReaderNumberDocument readerNumber;
 
+    @Getter @Setter
     @Field("birth_date")
     private BirthDateDocument birthDate;
 
+    @Getter @Setter
     @Field("phone_number")
     private PhoneNumberDocument phoneNumber;
 
+    @Getter @Setter
     @Field("gdpr_consent")
     private boolean gdprConsent;
 
+    @Getter @Setter
     @Field("marketing_consent")
     private boolean marketingConsent;
 
+    @Getter @Setter
     @Field("third_party_sharing_consent")
     private boolean thirdPartySharingConsent;
 
+    @Getter @Setter
     @Version
     private Long version;
 
     // Lista de géneros de interesse (referências)
-    @DBRef
+    @Getter @Setter
     @Field("interest_list")
     private List<GenreDocument> interestList;
 
@@ -111,11 +119,4 @@ public class ReaderDetailsDocument extends EntityWithPhotoDocument {
         setPhotoInternal(null);
     }
 
-    public String getReaderNumber() {
-        return this.readerNumber.toString();
-    }
-
-    public String getPhoneNumber() {
-        return this.phoneNumber.toString();
-    }
 }

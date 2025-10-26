@@ -9,9 +9,10 @@ import java.util.Optional;
 
 public interface ForbiddenNameDocumentPersistence extends MongoRepository<ForbiddenNameDocument, String> {
 
-    @Query("{ 'forbiddenName': { $regex: ?0, $options: 'i' } }")
+    @Query("{ 'forbidden_name': { $regex: ?0, $options: 'i' } }")
     List<ForbiddenNameDocument> findByForbiddenNameIsContained(String pat);
 
+    @Query ("{ 'forbidden_name': ?0 }")
     Optional<ForbiddenNameDocument> findByForbiddenName(String forbiddenName);
 
     void deleteByForbiddenName(String forbiddenName);

@@ -17,7 +17,7 @@ public interface AuthorDocumentMapper {
 
     @Mapping(target = "name", expression = "java(authorDocument.getName().toString())")
     @Mapping(target = "bio", expression = "java(authorDocument.getBio().toString())")
-    @Mapping(target = "photo", expression = "java(authorDocument.getPhoto().getPhotoFile())")
+    @Mapping(target = "photo", expression = "java((authorDocument.getPhoto() != null) ? authorDocument.getPhoto().getPhotoFile() : null)")
     Author toDomain(AuthorDocument authorDocument);
 }
 

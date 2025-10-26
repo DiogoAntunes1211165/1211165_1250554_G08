@@ -21,6 +21,7 @@ public interface BookDocumentPersistence extends MongoRepository<BookDocument, S
     List<BookDocument> findByAuthors_NameContainingIgnoreCase(String name);
 
     // Pesquisa por ISBN
+    @Query( "{ 'isbn.isbn': ?0 }" )
     Optional<BookDocument> findByIsbn(String isbn);
 
     // Pesquisa por número do autor

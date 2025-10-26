@@ -4,10 +4,12 @@ package pt.psoft.g1.psoftg1.shared.model.nonrelational;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
+import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import pt.psoft.g1.psoftg1.shared.model.StringUtilsCustom;
 
 @Getter
+@Document(collection = "names")
 public class NameDocument {
     @NotNull
     @NotBlank

@@ -86,9 +86,9 @@ public class UserDocument implements UserDetails {
     @Field("name")
     private NameDocument name;
 
-    @Getter
+    @Getter @Setter
     @Field("authorities")
-    private final Set<Role> authorities = new HashSet<>();
+    private Set<Role> authorities = new HashSet<>();
 
     protected UserDocument() {
         // usado pelo Spring Data

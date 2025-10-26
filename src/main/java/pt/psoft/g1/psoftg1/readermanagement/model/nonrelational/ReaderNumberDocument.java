@@ -5,10 +5,8 @@ import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.io.Serializable;
 
-@Getter
 public class ReaderNumberDocument implements Serializable {
 
-    @Getter
     @Field("reader_number")
     private String readerNumber;
 
@@ -20,5 +18,13 @@ public class ReaderNumberDocument implements Serializable {
         this.readerNumber = java.time.LocalDate.now().getYear() + "/" + number;
     }
 
+    public int getReaderNumber() {
+        return Integer.parseInt(this.readerNumber.split("/")[1]);
+    }
+
     protected ReaderNumberDocument() {}
+
+    public String toString() {
+        return this.readerNumber;
+    }
 }

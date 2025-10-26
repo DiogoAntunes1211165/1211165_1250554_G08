@@ -35,15 +35,15 @@ public class BookDocument extends EntityWithPhotoDocument {
 
     @Getter @Setter
     @NotNull
-    @DBRef
     @Field("genre")
     GenreDocument genre;
 
     @Getter @Setter
     @Field("authors")
-    @DBRef
     private List<AuthorDocument> authors = new ArrayList<>();
 
+    @Getter @Setter
+    @Field("description")
     DescriptionDocument description;
 
     public BookDocument() {}

@@ -29,7 +29,6 @@ public class FineDocument {
 
     @Setter
     @Field("lending")
-    @DBRef
     private LendingDocument lendingDocument;
 
     /**

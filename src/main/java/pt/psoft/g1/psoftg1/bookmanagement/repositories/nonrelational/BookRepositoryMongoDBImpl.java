@@ -119,8 +119,14 @@ public class BookRepositoryMongoDBImpl implements BookRepository {
         // Tratar autores
         List<AuthorDocument> savedAuthors = new ArrayList<>();
         for (AuthorDocument authorDoc : doc.getAuthors()) {
-            Optional<AuthorDocument> existing = Optional.ofNullable(authorDocumentPersistence.findByName(authorDoc.getName().toString()).getFirst());
-            AuthorDocument persisted = existing.orElseGet(() -> authorDocumentPersistence.save(authorDoc));
+            List<AuthorDocument> existingAuthors = authorDocumentPersistence.findByName(authorDoc.getName().toString());
+
+            AuthorDocument persisted;
+            if (existingAuthors == null || existingAuthors.isEmpty()) {
+                persisted = authorDocumentPersistence.save(authorDoc);
+            } else {
+                persisted = existingAuthors.get(0); // usa o primeiro encontrado
+            }
             savedAuthors.add(persisted);
         }
         doc.setAuthors(savedAuthors);

@@ -37,17 +37,17 @@ public class UserRepositoryMongoDBImpl implements UserRepository {
         if (document instanceof Reader) {
             ReaderDocument readerDocument = userDocumentMapper.toDocument((Reader) document);
             ReaderDocument saved = userDocumentPersistence.save(readerDocument);
-            return (S) userDocumentMapper.toModel(saved);
+            return (S) userDocumentMapper.toDomain(saved);
 
         } else if (document instanceof Librarian) {
             LibrarianDocument librarianDocument = userDocumentMapper.toDocument((Librarian) document);
             LibrarianDocument saved = userDocumentPersistence.save(librarianDocument);
-            return (S) userDocumentMapper.toModel(saved);
+            return (S) userDocumentMapper.toDomain(saved);
 
         } else if (document instanceof User) {
             UserDocument userDocument = userDocumentMapper.toDocument(document);
             UserDocument saved = userDocumentPersistence.save(userDocument);
-            return (S) userDocumentMapper.toModel(saved);
+            return (S) userDocumentMapper.toDomain(saved);
         }
 
         throw new IllegalArgumentException("Unsupported document type: " + document.getClass().getName());
@@ -62,7 +62,7 @@ public class UserRepositoryMongoDBImpl implements UserRepository {
 
         List<S> saved = new ArrayList<>();
         for (UserDocument doc : userDocumentPersistence.saveAll(docsToSave)) {
-            saved.add((S) userDocumentMapper.toModel(doc));
+            saved.add((S) userDocumentMapper.toDomain(doc));
         }
 
         return saved;
@@ -71,7 +71,7 @@ public class UserRepositoryMongoDBImpl implements UserRepository {
     @Override
     public Optional<User> findById(Long id) {
         return userDocumentPersistence.findById(id)
-                .map(userDocumentMapper::toModel);
+                .map(userDocumentMapper::toDomain);
     }
 
     @Override
@@ -81,8 +81,16 @@ public class UserRepositoryMongoDBImpl implements UserRepository {
 
     @Override
     public Optional<User> findByUsername(String username) {
-        return userDocumentPersistence.findByUsername(username)
-                .map(userDocumentMapper::toModel);
+        System.out.println("Username: " + username);
+        if(userDocumentPersistence.findByUsername(username).isEmpty()){
+            System.out.println("User not found");
+            return Optional.empty();
+        } else {
+            System.out.println("User found");
+            return Optional.of(userDocumentMapper.toDomain(userDocumentPersistence.findByUsername(username).get()));
+        }
+        /* return userDocumentPersistence.findByUsername(username)
+                .map(userDocumentMapper::toModel); */
     }
 
     @Override
@@ -99,7 +107,7 @@ public class UserRepositoryMongoDBImpl implements UserRepository {
 
         List<User> users = new ArrayList<>();
         for (UserDocument doc : docs) {
-            users.add(userDocumentMapper.toModel(doc));
+            users.add(userDocumentMapper.toDomain(doc));
         }
 
         // Paginação manual
@@ -118,7 +126,7 @@ public class UserRepositoryMongoDBImpl implements UserRepository {
         List<UserDocument> docs = userDocumentPersistence.findByName(name);
         List<User> users = new ArrayList<>();
         for (UserDocument d : docs) {
-            users.add(userDocumentMapper.toModel(d));
+            users.add(userDocumentMapper.toDomain(d));
         }
         return users;
     }

@@ -22,30 +22,38 @@ public class LendingDocument {
     @Id
     private String id;
 
+    @Getter
+    @Setter
     @Field("lending_number")
     private LendingNumberDocument lendingNumberEntity; // Reference to the embedded LendingNumberEntity
 
+    @Getter
     @Setter
     @NotNull
-    @DBRef
     @Field("book")
     private BookDocument book;
 
+    @Getter
     @Setter
     @NotNull
-    @DBRef
     @Field("reader_details")
     private ReaderDetailsDocument readerDetails;
 
 
     @NotNull
+    @Getter
+    @Setter
     @Field("start_date")
     private LocalDate startDate;
 
     @NotNull
+    @Getter
+    @Setter
     @Field("limit_date")
     private LocalDate limitDate;
 
+    @Getter
+    @Setter
     @Field("returned_date")
     private LocalDate returnedDate;
 
@@ -56,16 +64,20 @@ public class LendingDocument {
     @Field("commentary")
     private String commentary = null;
 
+    @Getter @Setter
     @Field("fine_value_per_day_in_cents")
     private int fineValuePerDayInCents;
 
+    @Getter @Setter
     @Field("days_until_return")
     private Integer daysUntilReturn;
 
+    @Getter @Setter
     @Field("days_overdue")
     private Integer daysOverdue;
 
-    public LendingDocument() {}
+    public LendingDocument() {
+    }
 
     public LendingDocument(BookDocument book, ReaderDetailsDocument readerDetails, LendingNumberDocument lendingNumber, LocalDate startDate, LocalDate limitDate, LocalDate returnedDate, int fineValuePerDayInCents) {
         this.book = book;

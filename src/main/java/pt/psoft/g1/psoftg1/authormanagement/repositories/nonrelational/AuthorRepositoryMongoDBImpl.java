@@ -53,7 +53,7 @@ public class AuthorRepositoryMongoDBImpl implements AuthorRepository{
 
     @Override
     public Author save(Author author) {
-        var saved = authorMongoDBPersistence.save(authorDocumentMapper.toDocument(author));
+        var saved = authorMongoDBPersistence.insert(authorDocumentMapper.toDocument(author));
         return authorDocumentMapper.toDomain(saved);
     }
 

@@ -14,21 +14,17 @@ import pt.psoft.g1.psoftg1.usermanagement.model.nonrelational.UserDocument;
 @Mapper(componentModel = "spring")
 public interface UserDocumentMapper {
 
-    User toModel(UserDocument document);
+    User toDomain(UserDocument document);
 
-    Librarian toModel(LibrarianDocument document);
+    Librarian toDomain(LibrarianDocument document);
 
-    Reader toModel(ReaderDocument document);
+    Reader toDomain(ReaderDocument document);
 
     ReaderDocument toDocument(Reader user);
 
     LibrarianDocument toDocument(Librarian user);
 
     UserDocument toDocument(User user);
-
-    @Mapping(target = "id", expression = "java(document.getId())")
-    @Mapping(target = "enabled", expression = "java(true)")
-    ReaderDocument toReader(UserDocument document);
 
     default String map(NameDocument nameDocument) {
         return nameDocument != null ? nameDocument.toString() : null;

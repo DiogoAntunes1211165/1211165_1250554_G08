@@ -15,7 +15,7 @@ public class AuthorDocument extends EntityWithPhotoDocument {
 
     @Id
     @Getter
-    private Long authorNumber;
+    private String authorNumber;
 
     @Version
     private long version;
@@ -43,7 +43,7 @@ public class AuthorDocument extends EntityWithPhotoDocument {
 
     protected AuthorDocument() {}
 
-    public Long getId() {
+    public String getId() {
         return authorNumber;
     }
 

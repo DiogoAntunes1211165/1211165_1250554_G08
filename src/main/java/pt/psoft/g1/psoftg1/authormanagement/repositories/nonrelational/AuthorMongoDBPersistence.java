@@ -5,6 +5,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -38,23 +39,37 @@ public interface AuthorMongoDBPersistence extends MongoRepository<AuthorDocument
 
     // Busca autores cujo nome começa com string fornecida
     @Cacheable
-    @Query("{ 'name': { $regex: '^?0', $options: 'i' } }")
+    @Query("{ 'name.name': { $regex: '^?0', $options: 'i' } }")
     List<AuthorDocument> findByNameStartsWith(String name);
 
     // Busca autores com nome exato
     @Cacheable
-    @Query("{ 'name': ?0 }")
+    @Query("{ 'name.name': ?0 }")
     List<AuthorDocument> findByName(String name);
 
-    // Coautores — este tipo de query complexa não existe diretamente em Mongo sem modelagem relacional,
-    // então aqui devolvemos vazio por padrão, ou poderias modelar manualmente numa query agregada.
-    default List<AuthorDocument> findCoAuthorsByAuthorNumber(String authorNumber) {
-        return List.of();
-    }
+    /* // Coautores — autores que participaram nos mesmos livros que um dado autor
+    @Aggregation(pipeline = {
+            "{ $match: { 'authorNumber': ?0 } }",
+            "{ $lookup: { from: 'book', localField: '_id', foreignField: 'authors._id', as: 'books' } }",
+            "{ $unwind: '$books' }",
+            "{ $lookup: { from: 'author', localField: 'books.authors._id', foreignField: '_id', as: 'coauthors' } }",
+            "{ $unwind: '$coauthors' }",
+            "{ $match: { 'coauthors.authorNumber': { $ne: ?0 } } }",
+            "{ $group: { _id: '$coauthors._id', author: { $first: '$coauthors' } } }",
+            "{ $replaceRoot: { newRoot: '$author' } }"
+    })
+    List<AuthorDocument> findCoAuthorsByAuthorNumber(String authorNumber);
 
-    // Top autores por empréstimos — também não é direto em Mongo, a menos que cries uma coleção
-    // ou pipeline agregador específico. Colocamos o método para manter interface consistente.
-    default Page<AuthorLendingView> findTopAuthorByLendings(Pageable pageable) {
-        throw new UnsupportedOperationException("Not implemented for MongoDB");
-    }
+
+    // Top autores por número de empréstimos
+    @Aggregation(pipeline = {
+            "{ $lookup: { from: 'book', localField: '_id', foreignField: 'authors._id', as: 'books' } }",
+            "{ $unwind: '$books' }",
+            "{ $lookup: { from: 'lending', localField: 'books._id', foreignField: 'bookId', as: 'lendings' } }",
+            "{ $unwind: '$lendings' }",
+            "{ $group: { _id: '$_id', lendingCount: { $sum: 1 }, author: { $first: '$$ROOT' } } }",
+            "{ $sort: { lendingCount: -1 } }"
+    })
+    Page<AuthorLendingView> findTopAuthorByLendings(Pageable pageable); */
+
 }

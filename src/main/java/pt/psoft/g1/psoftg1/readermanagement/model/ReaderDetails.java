@@ -47,8 +47,12 @@ public class ReaderDetails extends EntityWithPhoto {
     private List<Genre> interestList;
 
     public ReaderDetails(int readerNumber, Reader reader, String birthDate, String phoneNumber, boolean gdpr, boolean marketing, boolean thirdParty, String photoURI, List<Genre> interestList) {
-        if(reader == null || phoneNumber == null) {
-            throw new IllegalArgumentException("Provided argument resolves to null object");
+        if(reader == null) {
+            throw new IllegalArgumentException("Provided argument resolves to null reader");
+        }
+
+        if(phoneNumber == null) {
+            throw new IllegalArgumentException("Provided argument resolves to null phonenumber");
         }
 
         if(!gdpr) {
