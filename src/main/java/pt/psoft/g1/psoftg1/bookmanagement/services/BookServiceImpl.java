@@ -1,5 +1,7 @@
 package pt.psoft.g1.psoftg1.bookmanagement.services;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.domain.PageRequest;
@@ -11,6 +13,7 @@ import pt.psoft.g1.psoftg1.authormanagement.model.Author;
 import pt.psoft.g1.psoftg1.bookmanagement.model.*;
 import pt.psoft.g1.psoftg1.bookmanagement.repositories.BookRepository;
 import lombok.RequiredArgsConstructor;
+import pt.psoft.g1.psoftg1.bookmanagement.services.google.IsbnLookupService;
 import pt.psoft.g1.psoftg1.genremanagement.repositories.GenreRepository;
 import pt.psoft.g1.psoftg1.authormanagement.repositories.AuthorRepository;
 import pt.psoft.g1.psoftg1.exceptions.ConflictException;
@@ -31,11 +34,16 @@ import java.util.Optional;
 @PropertySource({"classpath:config/library.properties"})
 public class BookServiceImpl implements BookService {
 
+    private static final Logger logger = LoggerFactory.getLogger(BookServiceImpl.class);
+
 	private final BookRepository bookRepository;
 	private final GenreRepository genreRepository;
 	private final AuthorRepository authorRepository;
 	private final PhotoRepository photoRepository;
 	private final ReaderRepository readerRepository;
+
+    // Substitui a injeção única por uma lista para suportar múltiplos providers (Google, OpenLibrary, ...)
+    private final List<IsbnLookupService> isbnLookupServices;
 
 	@Value("${suggestionsLimitPerGenre}")
 	private long suggestionsLimitPerGenre;
@@ -43,21 +51,29 @@ public class BookServiceImpl implements BookService {
 	@Override
 	public Book create(CreateBookRequest request, String isbn) {
 
-		if(bookRepository.findByIsbn(isbn).isPresent()){
-			throw new ConflictException("Book with ISBN " + isbn + " already exists");
-		}
+        // Se o ISBN não foi fornecido, tenta buscar pelo título
+        if (isbn == null || isbn.isBlank()) {
+            // valida título antes do lookup
+            if (request == null || request.getTitle() == null || request.getTitle().isBlank()) {
+                throw new NotFoundException("ISBN not provided and title is empty");
+            }
+            // tenta obter via providers configurados (por ordem)
+            Optional<String> found = findIsbnFromProviders(request.getTitle());
+            isbn = found.orElseThrow(() -> new NotFoundException("ISBN not found for title: " + request.getTitle()));
+         }
 
-		List<Long> authorNumbers = request.getAuthors();
+         if(bookRepository.findByIsbn(isbn).isPresent()){
+             throw new ConflictException("Book with ISBN " + isbn + " already exists");
+         }
+
 		List<Author> authors = new ArrayList<>();
-		for (Long authorNumber : authorNumbers) {
-
-			Optional<Author> temp = authorRepository.findByAuthorNumber(authorNumber.toString());
-			if(temp.isEmpty()) {
-				continue;
+		List<Long> authorNumbers = request.getAuthors();
+		if (authorNumbers != null) {
+			for (Long authorNumber : authorNumbers) {
+				if (authorNumber == null) continue;
+				Optional<Author> temp = authorRepository.findByAuthorNumber(authorNumber.toString());
+				temp.ifPresent(authors::add);
 			}
-
-			Author author = temp.get();
-			authors.add(author);
 		}
 
 		MultipartFile photo = request.getPhoto();
@@ -75,6 +91,29 @@ public class BookServiceImpl implements BookService {
         return bookRepository.save(newBook);
 	}
 
+    // Método auxiliar que tenta todos os IsbnLookupService em ordem até obter um ISBN.
+    private Optional<String> findIsbnFromProviders(String title) {
+        if (title == null || title.isBlank()) return Optional.empty();
+        if (isbnLookupServices == null || isbnLookupServices.isEmpty()) {
+            logger.warn("No IsbnLookupService beans available to query for title: {}", title);
+            return Optional.empty();
+        }
+
+        for (IsbnLookupService svc : isbnLookupServices) {
+            try {
+                Optional<String> res = svc.findIsbnByTitle(title);
+                if (res.isPresent()) {
+                    logger.info("BookService: found ISBN '{}' via provider '{}' for title '{}'", res.get(), svc.getServiceName(), title);
+                    return res;
+                } else {
+                    logger.debug("BookService: provider '{}' returned no result for title '{}'", svc.getServiceName(), title);
+                }
+            } catch (Exception e) {
+                logger.warn("BookService: provider '{}' failed for title '{}': {}", svc.getServiceName(), title, e.getMessage());
+            }
+        }
+        return Optional.empty();
+    }
 
 	@Override
 	public Book update(UpdateBookRequest request, String currentVersion) {
