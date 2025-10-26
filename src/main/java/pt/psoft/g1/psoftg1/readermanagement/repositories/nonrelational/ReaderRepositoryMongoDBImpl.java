@@ -12,7 +12,7 @@ import pt.psoft.g1.psoftg1.readermanagement.repositories.ReaderRepository;
 import pt.psoft.g1.psoftg1.readermanagement.repositories.mappers.ReaderDocumentMapper;
 import pt.psoft.g1.psoftg1.readermanagement.services.ReaderBookCountDTO;
 import pt.psoft.g1.psoftg1.readermanagement.services.SearchReadersQuery;
-import pt.psoft.g1.psoftg1.usermanagement.repositories.nonrelational.UserDocumentPersistence;
+import pt.psoft.g1.psoftg1.usermanagement.repositories.nonrelational.UserRepositoryMongoDB;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -23,31 +23,31 @@ import java.util.Optional;
 @Repository("ReaderRepositoryMongoDBImpl")
 public class ReaderRepositoryMongoDBImpl implements ReaderRepository {
 
-    private final ReaderDocumentPersistence readerDocumentPersistence;
-    private final UserDocumentPersistence userDocumentPersistence;
+    private final ReaderRepositoryMongoDB readerRepositoryMongoDB;
+    private final UserRepositoryMongoDB userRepositoryMongoDB;
     private final ReaderDocumentMapper readerDocumentMapper;
 
     @Autowired
     @Lazy
     public ReaderRepositoryMongoDBImpl(
-            ReaderDocumentPersistence readerDocumentPersistence,
-            UserDocumentPersistence userDocumentPersistence,
+            ReaderRepositoryMongoDB readerRepositoryMongoDB,
+            UserRepositoryMongoDB userRepositoryMongoDB,
             ReaderDocumentMapper readerDocumentMapper
     ) {
-        this.readerDocumentPersistence = readerDocumentPersistence;
-        this.userDocumentPersistence = userDocumentPersistence;
+        this.readerRepositoryMongoDB = readerRepositoryMongoDB;
+        this.userRepositoryMongoDB = userRepositoryMongoDB;
         this.readerDocumentMapper = readerDocumentMapper;
     }
 
     @Override
     public Optional<ReaderDetails> findByReaderNumber(String readerNumber) {
-        return readerDocumentPersistence.findByReaderNumber(readerNumber)
+        return readerRepositoryMongoDB.findByReaderNumber(readerNumber)
                 .map(readerDocumentMapper::toDomain);
     }
 
     @Override
     public List<ReaderDetails> findByPhoneNumber(String phoneNumber) {
-        List<ReaderDetailsDocument> docs = readerDocumentPersistence.findByPhoneNumber(phoneNumber);
+        List<ReaderDetailsDocument> docs = readerRepositoryMongoDB.findByPhoneNumber(phoneNumber);
         List<ReaderDetails> readers = new ArrayList<>();
         for (ReaderDetailsDocument doc : docs) {
             readers.add(readerDocumentMapper.toDomain(doc));
@@ -57,19 +57,19 @@ public class ReaderRepositoryMongoDBImpl implements ReaderRepository {
 
     @Override
     public Optional<ReaderDetails> findByUsername(String username) {
-        return readerDocumentPersistence.findByReader_Username(username)
+        return readerRepositoryMongoDB.findByReader_Username(username)
                 .map(readerDocumentMapper::toDomain);
     }
 
     @Override
     public Optional<ReaderDetails> findByUserId(String userId) {
-        return readerDocumentPersistence.findByUserId(userId)
+        return readerRepositoryMongoDB.findByUserId(userId)
                 .map(readerDocumentMapper::toDomain);
     }
 
     @Override
     public int getCountFromCurrentYear() {
-        return readerDocumentPersistence.getCountFromCurrentYear();
+        return readerRepositoryMongoDB.getCountFromCurrentYear();
     }
 
     @Override
@@ -80,18 +80,18 @@ public class ReaderRepositoryMongoDBImpl implements ReaderRepository {
             if (doc.getReader() != null && doc.getReader().getId() == null) {
                 String username = doc.getReader().getUsername();
                 if (username != null) {
-                    Optional<pt.psoft.g1.psoftg1.usermanagement.model.nonrelational.UserDocument> existing = userDocumentPersistence.findByUsername(username);
+                    Optional<pt.psoft.g1.psoftg1.usermanagement.model.nonrelational.UserDocument> existing = userRepositoryMongoDB.findByUsername(username);
                     if (existing.isPresent()) {
                         // reuse existing user document (will have an id)
                         doc.setReader((pt.psoft.g1.psoftg1.usermanagement.model.nonrelational.ReaderDocument) existing.get());
                     } else {
                         // persist the reader document into Mongo to obtain an id
-                        pt.psoft.g1.psoftg1.usermanagement.model.nonrelational.UserDocument savedUser = userDocumentPersistence.save(doc.getReader());
+                        pt.psoft.g1.psoftg1.usermanagement.model.nonrelational.UserDocument savedUser = userRepositoryMongoDB.save(doc.getReader());
                         doc.setReader((pt.psoft.g1.psoftg1.usermanagement.model.nonrelational.ReaderDocument) savedUser);
                     }
                 }
             }
-            ReaderDetailsDocument savedDoc = readerDocumentPersistence.insert(doc);
+            ReaderDetailsDocument savedDoc = readerRepositoryMongoDB.insert(doc);
             return readerDocumentMapper.toDomain(savedDoc);
         } catch (Exception e) {
             e.printStackTrace(); // mostra qualquer exceção antes do println
@@ -103,7 +103,7 @@ public class ReaderRepositoryMongoDBImpl implements ReaderRepository {
     @Override
     public Iterable<ReaderDetails> findAll() {
         List<ReaderDetails> list = new ArrayList<>();
-        for (ReaderDetailsDocument doc : readerDocumentPersistence.findAll()) {
+        for (ReaderDetailsDocument doc : readerRepositoryMongoDB.findAll()) {
             list.add(readerDocumentMapper.toDomain(doc));
         }
         return list;
@@ -123,8 +123,8 @@ public class ReaderRepositoryMongoDBImpl implements ReaderRepository {
 
     @Override
     public void delete(ReaderDetails readerDetails) {
-        readerDocumentPersistence.findByReaderNumber(readerDetails.getReaderNumber())
-                .ifPresent(readerDocumentPersistence::delete);
+        readerRepositoryMongoDB.findByReaderNumber(readerDetails.getReaderNumber())
+                .ifPresent(readerRepositoryMongoDB::delete);
     }
 
     @Override
@@ -137,19 +137,19 @@ public class ReaderRepositoryMongoDBImpl implements ReaderRepository {
 
         // Pesquisa por nome do utilizador
         if (name != null && !name.isBlank()) {
-            readerDocumentPersistence.findByReader_Username(name)
+            readerRepositoryMongoDB.findByReader_Username(name)
                     .ifPresent(doc -> results.add(readerDocumentMapper.toDomain(doc)));
         }
 
         // Pesquisa por email
         if (email != null && !email.isBlank()) {
-            readerDocumentPersistence.findByReader_Email(email)
+            readerRepositoryMongoDB.findByReader_Email(email)
                     .ifPresent(doc -> results.add(readerDocumentMapper.toDomain(doc)));
         }
 
         // Pesquisa por número de telefone
         if (phoneNumber != null && !phoneNumber.isBlank()) {
-            List<ReaderDetailsDocument> phoneResults = readerDocumentPersistence.findByPhoneNumber(phoneNumber);
+            List<ReaderDetailsDocument> phoneResults = readerRepositoryMongoDB.findByPhoneNumber(phoneNumber);
             for (ReaderDetailsDocument doc : phoneResults) {
                 results.add(readerDocumentMapper.toDomain(doc));
             }

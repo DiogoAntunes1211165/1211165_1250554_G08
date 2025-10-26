@@ -23,39 +23,39 @@ import java.util.Optional;
 @Repository("GenreRepositoryMongoDBImpl")
 public class GenreRepositoryMongoDBImpl implements GenreRepository {
 
-    private final GenreDocumentPersistence genreDocumentPersistence;
+    private final GenreRepositoryMongoDB genreRepositoryMongoDB;
     private final GenreDocumentMapper genreDocumentMapper;
 
     @Autowired
     @Lazy
-    public GenreRepositoryMongoDBImpl(GenreDocumentPersistence genreDocumentPersistence, GenreDocumentMapper genreDocumentMapper) {
-        this.genreDocumentPersistence = genreDocumentPersistence;
+    public GenreRepositoryMongoDBImpl(GenreRepositoryMongoDB genreRepositoryMongoDB, GenreDocumentMapper genreDocumentMapper) {
+        this.genreRepositoryMongoDB = genreRepositoryMongoDB;
         this.genreDocumentMapper = genreDocumentMapper;
     }
 
     @Override
     public Iterable<Genre> findAll() {
         List<Genre> genres = new ArrayList<>();
-        genreDocumentPersistence.findAll().forEach(doc -> genres.add(genreDocumentMapper.toDomain(doc)));
+        genreRepositoryMongoDB.findAll().forEach(doc -> genres.add(genreDocumentMapper.toDomain(doc)));
         return genres;
     }
 
     @Override
     public Optional<Genre> findByString(String genreName) {
-        Optional<GenreDocument> doc = genreDocumentPersistence.findByString(genreName);
+        Optional<GenreDocument> doc = genreRepositoryMongoDB.findByString(genreName);
         return doc.map(genreDocumentMapper::toDomain);
     }
 
     @Override
     public Genre save(Genre genre) {
         GenreDocument doc = genreDocumentMapper.toDocument(genre);
-        GenreDocument saved = genreDocumentPersistence.save(doc);
+        GenreDocument saved = genreRepositoryMongoDB.save(doc);
         return genreDocumentMapper.toDomain(saved);
     }
 
     @Override
     public void delete(Genre genre) {
-        genreDocumentPersistence.delete(genreDocumentMapper.toDocument(genre));
+        genreRepositoryMongoDB.delete(genreDocumentMapper.toDocument(genre));
     }
 
     // Mongo não tem estas queries agregadas ainda — devolvemos placeholders

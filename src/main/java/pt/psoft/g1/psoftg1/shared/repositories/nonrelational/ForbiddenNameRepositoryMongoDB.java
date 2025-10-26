@@ -7,7 +7,7 @@ import pt.psoft.g1.psoftg1.shared.model.nonrelational.ForbiddenNameDocument;
 import java.util.List;
 import java.util.Optional;
 
-public interface ForbiddenNameDocumentPersistence extends MongoRepository<ForbiddenNameDocument, String> {
+public interface ForbiddenNameRepositoryMongoDB extends MongoRepository<ForbiddenNameDocument, String> {
 
     @Query("{ 'forbidden_name': { $regex: ?0, $options: 'i' } }")
     List<ForbiddenNameDocument> findByForbiddenNameIsContained(String pat);

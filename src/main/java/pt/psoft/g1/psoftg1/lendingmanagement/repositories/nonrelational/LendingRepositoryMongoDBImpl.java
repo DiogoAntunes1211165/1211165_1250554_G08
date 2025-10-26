@@ -4,12 +4,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
-import pt.psoft.g1.psoftg1.bookmanagement.repositories.nonrelational.BookDocumentPersistence;
+import pt.psoft.g1.psoftg1.bookmanagement.repositories.nonrelational.BookRepositoryMongoDB;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.Lending;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.nonrelational.LendingDocument;
 import pt.psoft.g1.psoftg1.lendingmanagement.repositories.LendingRepository;
 import pt.psoft.g1.psoftg1.lendingmanagement.repositories.mappers.LendingDocumentMapper;
-import pt.psoft.g1.psoftg1.readermanagement.repositories.nonrelational.ReaderDocumentPersistence;
+import pt.psoft.g1.psoftg1.readermanagement.repositories.nonrelational.ReaderRepositoryMongoDB;
 import pt.psoft.g1.psoftg1.shared.services.Page;
 
 import java.time.LocalDate;
@@ -24,20 +24,20 @@ public class LendingRepositoryMongoDBImpl implements LendingRepository {
 
     private final LendingRepositoryMongoDB lendingRepository;
     private final LendingDocumentMapper lendingDocumentMapper;
-    private final ReaderDocumentPersistence readerDocumentPersistence;
-    private final BookDocumentPersistence bookDocumentPersistence;
+    private final ReaderRepositoryMongoDB readerRepositoryMongoDB;
+    private final BookRepositoryMongoDB bookRepositoryMongoDB;
 
     @Autowired
     @Lazy
     public LendingRepositoryMongoDBImpl(
             LendingRepositoryMongoDB lendingRepository,
             LendingDocumentMapper lendingDocumentMapper,
-            ReaderDocumentPersistence readerDocumentPersistence,
-            BookDocumentPersistence bookDocumentPersistence) {
+            ReaderRepositoryMongoDB readerRepositoryMongoDB,
+            BookRepositoryMongoDB bookRepositoryMongoDB) {
         this.lendingRepository = lendingRepository;
         this.lendingDocumentMapper = lendingDocumentMapper;
-        this.readerDocumentPersistence = readerDocumentPersistence;
-        this.bookDocumentPersistence = bookDocumentPersistence;
+        this.readerRepositoryMongoDB = readerRepositoryMongoDB;
+        this.bookRepositoryMongoDB = bookRepositoryMongoDB;
     }
 
     @Override

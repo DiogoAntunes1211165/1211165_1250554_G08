@@ -1,6 +1,5 @@
 package pt.psoft.g1.psoftg1.readermanagement.repositories.nonrelational;
 
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
@@ -9,7 +8,7 @@ import pt.psoft.g1.psoftg1.readermanagement.model.nonrelational.ReaderDetailsDoc
 import java.util.List;
 import java.util.Optional;
 
-public interface ReaderDocumentPersistence extends MongoRepository<ReaderDetailsDocument, String> {
+public interface ReaderRepositoryMongoDB extends MongoRepository<ReaderDetailsDocument, String> {
 
     // Busca por número de leitor
     @Query ("{ 'reader_number.reader_number': ?0 }")

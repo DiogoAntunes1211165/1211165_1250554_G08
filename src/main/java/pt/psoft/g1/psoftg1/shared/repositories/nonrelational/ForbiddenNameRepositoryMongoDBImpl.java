@@ -16,19 +16,19 @@ import java.util.Optional;
 @Repository("ForbiddenNameRepositoryMongoDBImpl")
 public class ForbiddenNameRepositoryMongoDBImpl implements ForbiddenNameRepository {
 
-    private final ForbiddenNameDocumentPersistence forbiddenNameDocumentPersistence;
+    private final ForbiddenNameRepositoryMongoDB forbiddenNameRepositoryMongoDB;
     private final ForbiddenNameDocumentMapper forbiddenNameDocumentMapper;
 
     @Autowired
     @Lazy
-    public ForbiddenNameRepositoryMongoDBImpl(ForbiddenNameDocumentPersistence forbiddenNameDocumentPersistence, ForbiddenNameDocumentMapper forbiddenNameDocumentMapper) {
-        this.forbiddenNameDocumentPersistence = forbiddenNameDocumentPersistence;
+    public ForbiddenNameRepositoryMongoDBImpl(ForbiddenNameRepositoryMongoDB forbiddenNameRepositoryMongoDB, ForbiddenNameDocumentMapper forbiddenNameDocumentMapper) {
+        this.forbiddenNameRepositoryMongoDB = forbiddenNameRepositoryMongoDB;
         this.forbiddenNameDocumentMapper = forbiddenNameDocumentMapper;
     }
 
     @Override
     public Iterable<ForbiddenName> findAll() {
-        Iterable<ForbiddenNameDocument> documents = forbiddenNameDocumentPersistence.findAll();
+        Iterable<ForbiddenNameDocument> documents = forbiddenNameRepositoryMongoDB.findAll();
         List<ForbiddenName> result = new java.util.ArrayList<>();
         for (ForbiddenNameDocument document : documents) {
             result.add(forbiddenNameDocumentMapper.toModel(document));
@@ -38,7 +38,7 @@ public class ForbiddenNameRepositoryMongoDBImpl implements ForbiddenNameReposito
 
     @Override
     public List<ForbiddenName> findByForbiddenNameIsContained(String pat) {
-        List<ForbiddenNameDocument> documents = forbiddenNameDocumentPersistence.findByForbiddenNameIsContained(pat);
+        List<ForbiddenNameDocument> documents = forbiddenNameRepositoryMongoDB.findByForbiddenNameIsContained(pat);
         List<ForbiddenName> result = new java.util.ArrayList<>();
         for (ForbiddenNameDocument document : documents) {
             result.add(forbiddenNameDocumentMapper.toModel(document));
@@ -49,13 +49,13 @@ public class ForbiddenNameRepositoryMongoDBImpl implements ForbiddenNameReposito
     @Override
     public ForbiddenName save(ForbiddenName forbiddenName) {
         ForbiddenNameDocument document = forbiddenNameDocumentMapper.toDocument(forbiddenName);
-        ForbiddenNameDocument saved = forbiddenNameDocumentPersistence.save(document);
+        ForbiddenNameDocument saved = forbiddenNameRepositoryMongoDB.save(document);
         return forbiddenNameDocumentMapper.toModel(saved);
     }
 
     @Override
     public Optional<ForbiddenName> findByForbiddenName(String forbiddenName) {
-        ForbiddenNameDocument forbiddenNameMongoDB = forbiddenNameDocumentPersistence.findByForbiddenName(forbiddenName).orElse(null);
+        ForbiddenNameDocument forbiddenNameMongoDB = forbiddenNameRepositoryMongoDB.findByForbiddenName(forbiddenName).orElse(null);
         if(forbiddenNameMongoDB == null) {
             return Optional.empty();
         }
@@ -64,7 +64,7 @@ public class ForbiddenNameRepositoryMongoDBImpl implements ForbiddenNameReposito
 
     @Override
     public int deleteForbiddenName(String forbiddenName) {
-        forbiddenNameDocumentPersistence.deleteByForbiddenName(forbiddenName);
+        forbiddenNameRepositoryMongoDB.deleteByForbiddenName(forbiddenName);
         return 1;
     }
 

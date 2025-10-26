@@ -7,7 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import pt.psoft.g1.psoftg1.authormanagement.model.nonrelational.AuthorDocument;
-import pt.psoft.g1.psoftg1.authormanagement.repositories.nonrelational.AuthorMongoDBPersistence;
+import pt.psoft.g1.psoftg1.authormanagement.repositories.nonrelational.AuthorRepositoryMongoDB;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
 import pt.psoft.g1.psoftg1.bookmanagement.model.nonrelational.BookDocument;
 import pt.psoft.g1.psoftg1.bookmanagement.repositories.BookRepository;
@@ -15,7 +15,7 @@ import pt.psoft.g1.psoftg1.bookmanagement.repositories.mappers.BookDocumentMappe
 import pt.psoft.g1.psoftg1.bookmanagement.services.BookCountDTO;
 import pt.psoft.g1.psoftg1.bookmanagement.services.SearchBooksQuery;
 import pt.psoft.g1.psoftg1.genremanagement.model.nonrelational.GenreDocument;
-import pt.psoft.g1.psoftg1.genremanagement.repositories.nonrelational.GenreDocumentPersistence;
+import pt.psoft.g1.psoftg1.genremanagement.repositories.nonrelational.GenreRepositoryMongoDB;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -26,22 +26,22 @@ import java.util.Optional;
 @Repository("BookRepositoryMongoDBImpl")
 public class BookRepositoryMongoDBImpl implements BookRepository {
 
-    private final BookDocumentPersistence bookDocumentPersistence;
+    private final BookRepositoryMongoDB bookRepositoryMongoDB;
     private final BookDocumentMapper bookDocumentMapper;
-    private final GenreDocumentPersistence genreDocumentPersistence;
-    private final AuthorMongoDBPersistence authorDocumentPersistence;
+    private final GenreRepositoryMongoDB genreRepositoryMongoDB;
+    private final AuthorRepositoryMongoDB authorDocumentPersistence;
 
     @Autowired
     @Lazy
     public BookRepositoryMongoDBImpl(
-            BookDocumentPersistence bookDocumentPersistence,
+            BookRepositoryMongoDB bookRepositoryMongoDB,
             BookDocumentMapper bookDocumentMapper,
-            GenreDocumentPersistence genreDocumentPersistence,
-            AuthorMongoDBPersistence authorDocumentPersistence
+            GenreRepositoryMongoDB genreRepositoryMongoDB,
+            AuthorRepositoryMongoDB authorDocumentPersistence
     ) {
-        this.bookDocumentPersistence = bookDocumentPersistence;
+        this.bookRepositoryMongoDB = bookRepositoryMongoDB;
         this.bookDocumentMapper = bookDocumentMapper;
-        this.genreDocumentPersistence = genreDocumentPersistence;
+        this.genreRepositoryMongoDB = genreRepositoryMongoDB;
         this.authorDocumentPersistence = authorDocumentPersistence;
     }
 
@@ -51,7 +51,7 @@ public class BookRepositoryMongoDBImpl implements BookRepository {
 
     @Override
     public List<Book> findByGenre(String genre) {
-        List<BookDocument> docs = bookDocumentPersistence.findByGenre_Genre(genre);
+        List<BookDocument> docs = bookRepositoryMongoDB.findByGenre_Genre(genre);
         List<Book> books = new ArrayList<>();
         for (BookDocument d : docs) {
             books.add(bookDocumentMapper.toDomain(d));
@@ -61,7 +61,7 @@ public class BookRepositoryMongoDBImpl implements BookRepository {
 
     @Override
     public List<Book> findByTitle(String title) {
-        List<BookDocument> docs = bookDocumentPersistence.findByTitleContainingIgnoreCase(title);
+        List<BookDocument> docs = bookRepositoryMongoDB.findByTitleContainingIgnoreCase(title);
         List<Book> books = new ArrayList<>();
         for (BookDocument d : docs) {
             books.add(bookDocumentMapper.toDomain(d));
@@ -71,7 +71,7 @@ public class BookRepositoryMongoDBImpl implements BookRepository {
 
     @Override
     public List<Book> findByAuthorName(String authorName) {
-        List<BookDocument> docs = bookDocumentPersistence.findByAuthors_NameContainingIgnoreCase(authorName);
+        List<BookDocument> docs = bookRepositoryMongoDB.findByAuthors_NameContainingIgnoreCase(authorName);
         List<Book> books = new ArrayList<>();
         for (BookDocument d : docs) {
             books.add(bookDocumentMapper.toDomain(d));
@@ -81,7 +81,7 @@ public class BookRepositoryMongoDBImpl implements BookRepository {
 
     @Override
     public Optional<Book> findByIsbn(String isbn) {
-        Optional<BookDocument> doc = bookDocumentPersistence.findByIsbn(isbn);
+        Optional<BookDocument> doc = bookRepositoryMongoDB.findByIsbn(isbn);
         return doc.map(bookDocumentMapper::toDomain);
     }
 
@@ -94,7 +94,7 @@ public class BookRepositoryMongoDBImpl implements BookRepository {
 
     @Override
     public List<Book> findBooksByAuthorNumber(String authorNumber) {
-        List<BookDocument> docs = bookDocumentPersistence.findByAuthors_AuthorNumber(authorNumber);
+        List<BookDocument> docs = bookRepositoryMongoDB.findByAuthors_AuthorNumber(authorNumber);
         List<Book> books = new ArrayList<>();
         for (BookDocument d : docs) {
             books.add(bookDocumentMapper.toDomain(d));
@@ -104,7 +104,7 @@ public class BookRepositoryMongoDBImpl implements BookRepository {
 
     @Override
     public List<Book> searchBooks(pt.psoft.g1.psoftg1.shared.services.Page page, SearchBooksQuery query) {
-        List<BookDocument> results = bookDocumentPersistence.searchBooks(query.getTitle(), query.getGenre(), query.getAuthorName());
+        List<BookDocument> results = bookRepositoryMongoDB.searchBooks(query.getTitle(), query.getGenre(), query.getAuthorName());
         List<Book> books = new ArrayList<>();
         for (BookDocument d : results) {
             books.add(bookDocumentMapper.toDomain(d));
@@ -133,19 +133,19 @@ public class BookRepositoryMongoDBImpl implements BookRepository {
 
         // Tratar género
         if (doc.getGenre() != null) {
-            GenreDocument genreDoc = genreDocumentPersistence
+            GenreDocument genreDoc = genreRepositoryMongoDB
                     .findByString(doc.getGenre().getGenre())
-                    .orElseGet(() -> genreDocumentPersistence.save(doc.getGenre()));
+                    .orElseGet(() -> genreRepositoryMongoDB.save(doc.getGenre()));
             doc.setGenre(genreDoc);
         }
 
-        BookDocument savedDoc = bookDocumentPersistence.save(doc);
+        BookDocument savedDoc = bookRepositoryMongoDB.save(doc);
         return bookDocumentMapper.toDomain(savedDoc);
     }
 
     @Override
     public void delete(Book book) {
-        Optional<BookDocument> doc = bookDocumentPersistence.findByIsbn(book.getIsbn());
-        doc.ifPresent(bookDocumentPersistence::delete);
+        Optional<BookDocument> doc = bookRepositoryMongoDB.findByIsbn(book.getIsbn());
+        doc.ifPresent(bookRepositoryMongoDB::delete);
     }
 }

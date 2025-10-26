@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface BookDocumentPersistence extends MongoRepository<BookDocument, String> {
+public interface BookRepositoryMongoDB extends MongoRepository<BookDocument, String> {
 
     // Pesquisa livros por género (campo interno)
     List<BookDocument> findByGenre_Genre(String genre);

@@ -19,25 +19,25 @@ import java.util.Optional;
 @Repository("AuthorRepositoryMongoDBImpl")
 public class AuthorRepositoryMongoDBImpl implements AuthorRepository{
 
-    private AuthorMongoDBPersistence authorMongoDBPersistence;
+    private AuthorRepositoryMongoDB authorRepositoryMongoDB;
     private AuthorDocumentMapper authorDocumentMapper;
 
     @Autowired
     @Lazy
-    public AuthorRepositoryMongoDBImpl(AuthorMongoDBPersistence authorMongoDBPersistence, AuthorDocumentMapper authorDocumentMapper) {
-        this.authorMongoDBPersistence = authorMongoDBPersistence;
+    public AuthorRepositoryMongoDBImpl(AuthorRepositoryMongoDB authorRepositoryMongoDB, AuthorDocumentMapper authorDocumentMapper) {
+        this.authorRepositoryMongoDB = authorRepositoryMongoDB;
         this.authorDocumentMapper = authorDocumentMapper;
     }
 
     @Override
     public Optional<Author> findByAuthorNumber(String authorNumber) {
-        return authorMongoDBPersistence.findByAuthorNumber(authorNumber)
+        return authorRepositoryMongoDB.findByAuthorNumber(authorNumber)
                 .map(authorDocumentMapper::toDomain);
     }
 
     @Override
     public List<Author> searchByNameNameStartsWith(String name) {
-        var documents = authorMongoDBPersistence.findByNameStartsWith(name);
+        var documents = authorRepositoryMongoDB.findByNameStartsWith(name);
         var authors = new ArrayList<Author>();
         documents.forEach(doc -> authors.add(authorDocumentMapper.toDomain(doc)));
         return authors;
@@ -45,7 +45,7 @@ public class AuthorRepositoryMongoDBImpl implements AuthorRepository{
 
     @Override
     public List<Author> searchByNameName(String name) {
-        var documents = authorMongoDBPersistence.findByName(name);
+        var documents = authorRepositoryMongoDB.findByName(name);
         var authors = new ArrayList<Author>();
         documents.forEach(doc -> authors.add(authorDocumentMapper.toDomain(doc)));
         return authors;
@@ -53,14 +53,14 @@ public class AuthorRepositoryMongoDBImpl implements AuthorRepository{
 
     @Override
     public Author save(Author author) {
-        var saved = authorMongoDBPersistence.insert(authorDocumentMapper.toDocument(author));
+        var saved = authorRepositoryMongoDB.insert(authorDocumentMapper.toDocument(author));
         return authorDocumentMapper.toDomain(saved);
     }
 
     @Override
     public Iterable<Author> findAll() {
         var result = new ArrayList<Author>();
-        authorMongoDBPersistence.findAll().forEach(doc -> result.add(authorDocumentMapper.toDomain(doc)));
+        authorRepositoryMongoDB.findAll().forEach(doc -> result.add(authorDocumentMapper.toDomain(doc)));
         return result;
     }
 
@@ -72,7 +72,7 @@ public class AuthorRepositoryMongoDBImpl implements AuthorRepository{
 
     @Override
     public void delete(Author author) {
-        authorMongoDBPersistence.delete(authorDocumentMapper.toDocument(author));
+        authorRepositoryMongoDB.delete(authorDocumentMapper.toDocument(author));
     }
 
     @Override

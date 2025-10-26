@@ -22,13 +22,13 @@ import java.util.Optional;
 @Repository("UserRepositoryMongoDBImpl")
 public class UserRepositoryMongoDBImpl implements UserRepository {
 
-    private final UserDocumentPersistence userDocumentPersistence;
+    private final UserRepositoryMongoDB userRepositoryMongoDB;
     private final UserDocumentMapper userDocumentMapper;
 
     @Autowired
     @Lazy
-    public UserRepositoryMongoDBImpl(UserDocumentPersistence userDocumentPersistence, UserDocumentMapper userDocumentMapper) {
-        this.userDocumentPersistence = userDocumentPersistence;
+    public UserRepositoryMongoDBImpl(UserRepositoryMongoDB userRepositoryMongoDB, UserDocumentMapper userDocumentMapper) {
+        this.userRepositoryMongoDB = userRepositoryMongoDB;
         this.userDocumentMapper = userDocumentMapper;
     }
 
@@ -36,17 +36,17 @@ public class UserRepositoryMongoDBImpl implements UserRepository {
     public <S extends User> S save(S document) {
         if (document instanceof Reader) {
             ReaderDocument readerDocument = userDocumentMapper.toDocument((Reader) document);
-            ReaderDocument saved = userDocumentPersistence.save(readerDocument);
+            ReaderDocument saved = userRepositoryMongoDB.save(readerDocument);
             return (S) userDocumentMapper.toDomain(saved);
 
         } else if (document instanceof Librarian) {
             LibrarianDocument librarianDocument = userDocumentMapper.toDocument((Librarian) document);
-            LibrarianDocument saved = userDocumentPersistence.save(librarianDocument);
+            LibrarianDocument saved = userRepositoryMongoDB.save(librarianDocument);
             return (S) userDocumentMapper.toDomain(saved);
 
         } else if (document instanceof User) {
             UserDocument userDocument = userDocumentMapper.toDocument(document);
-            UserDocument saved = userDocumentPersistence.save(userDocument);
+            UserDocument saved = userRepositoryMongoDB.save(userDocument);
             return (S) userDocumentMapper.toDomain(saved);
         }
 
@@ -61,7 +61,7 @@ public class UserRepositoryMongoDBImpl implements UserRepository {
         }
 
         List<S> saved = new ArrayList<>();
-        for (UserDocument doc : userDocumentPersistence.saveAll(docsToSave)) {
+        for (UserDocument doc : userRepositoryMongoDB.saveAll(docsToSave)) {
             saved.add((S) userDocumentMapper.toDomain(doc));
         }
 
@@ -70,7 +70,7 @@ public class UserRepositoryMongoDBImpl implements UserRepository {
 
     @Override
     public Optional<User> findById(Long id) {
-        return userDocumentPersistence.findById(id)
+        return userRepositoryMongoDB.findById(id)
                 .map(userDocumentMapper::toDomain);
     }
 
@@ -82,12 +82,12 @@ public class UserRepositoryMongoDBImpl implements UserRepository {
     @Override
     public Optional<User> findByUsername(String username) {
         System.out.println("Username: " + username);
-        if(userDocumentPersistence.findByUsername(username).isEmpty()){
+        if(userRepositoryMongoDB.findByUsername(username).isEmpty()){
             System.out.println("User not found");
             return Optional.empty();
         } else {
             System.out.println("User found");
-            return Optional.of(userDocumentMapper.toDomain(userDocumentPersistence.findByUsername(username).get()));
+            return Optional.of(userDocumentMapper.toDomain(userRepositoryMongoDB.findByUsername(username).get()));
         }
         /* return userDocumentPersistence.findByUsername(username)
                 .map(userDocumentMapper::toModel); */
@@ -98,11 +98,11 @@ public class UserRepositoryMongoDBImpl implements UserRepository {
         List<UserDocument> docs = new ArrayList<>();
 
         if (StringUtils.hasText(query.getUsername())) {
-            userDocumentPersistence.findByUsername(query.getUsername()).ifPresent(docs::add);
+            userRepositoryMongoDB.findByUsername(query.getUsername()).ifPresent(docs::add);
         } else if (StringUtils.hasText(query.getFullName())) {
-            docs.addAll(userDocumentPersistence.findByName(query.getFullName()));
+            docs.addAll(userRepositoryMongoDB.findByName(query.getFullName()));
         } else {
-            userDocumentPersistence.findAll().forEach(docs::add);
+            userRepositoryMongoDB.findAll().forEach(docs::add);
         }
 
         List<User> users = new ArrayList<>();
@@ -123,7 +123,7 @@ public class UserRepositoryMongoDBImpl implements UserRepository {
 
     @Override
     public List<User> findByNameName(String name) {
-        List<UserDocument> docs = userDocumentPersistence.findByName(name);
+        List<UserDocument> docs = userRepositoryMongoDB.findByName(name);
         List<User> users = new ArrayList<>();
         for (UserDocument d : docs) {
             users.add(userDocumentMapper.toDomain(d));
@@ -140,6 +140,6 @@ public class UserRepositoryMongoDBImpl implements UserRepository {
     @Override
     public void delete(User user) {
         UserDocument doc = userDocumentMapper.toDocument(user);
-        userDocumentPersistence.delete(doc);
+        userRepositoryMongoDB.delete(doc);
     }
 }

@@ -13,7 +13,7 @@ import java.util.Optional;
 
 @Repository
 @CacheConfig(cacheNames = "users")
-public interface UserDocumentPersistence extends MongoRepository<UserDocument, Long> {
+public interface UserRepositoryMongoDB extends MongoRepository<UserDocument, Long> {
 
     @Cacheable(key = "#id")
     @Query("{ '_id': ?0 }")

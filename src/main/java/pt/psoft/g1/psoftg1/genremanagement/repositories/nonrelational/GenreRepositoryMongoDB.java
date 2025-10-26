@@ -8,7 +8,7 @@ import pt.psoft.g1.psoftg1.genremanagement.model.nonrelational.GenreDocument;
 import java.util.Optional;
 
 @Repository
-public interface GenreDocumentPersistence extends MongoRepository<GenreDocument, String> {
+public interface GenreRepositoryMongoDB extends MongoRepository<GenreDocument, String> {
 
     // Busca um género pelo nome
     @Query("{ 'genre': ?0 }")

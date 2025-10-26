@@ -8,15 +8,15 @@ import pt.psoft.g1.psoftg1.shared.repositories.PhotoRepository;
 @Repository("PhotoRepositoryMongoDBImpl")
 public class PhotoRepositoryMongoDBImpl implements PhotoRepository {
 
-    private final PhotoDocumentPersistence photoDocumentPersistence;
+    private final PhotoRepositoryMongoDB photoRepositoryMongoDB;
 
-    public PhotoRepositoryMongoDBImpl(PhotoDocumentPersistence photoDocumentPersistence) {
-        this.photoDocumentPersistence = photoDocumentPersistence;
+    public PhotoRepositoryMongoDBImpl(PhotoRepositoryMongoDB photoRepositoryMongoDB) {
+        this.photoRepositoryMongoDB = photoRepositoryMongoDB;
     }
 
     @Override
     public void deleteByPhotoFile(String photoFile) {
-        photoDocumentPersistence.deleteByPhotoFile(photoFile);
+        photoRepositoryMongoDB.deleteByPhotoFile(photoFile);
     }
 
 }
