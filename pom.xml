@@ -139,6 +139,12 @@
             <artifactId>firebase-admin</artifactId>
             <version>9.3.0</version>
         </dependency>
+
+        <!-- Redis (Spring Data Redis + Lettuce client) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
