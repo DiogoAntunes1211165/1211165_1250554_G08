@@ -5,6 +5,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import pt.psoft.g1.psoftg1.authormanagement.api.AuthorLendingView;
 import pt.psoft.g1.psoftg1.authormanagement.model.Author;
 import pt.psoft.g1.psoftg1.authormanagement.repositories.AuthorRepository;
@@ -25,21 +27,26 @@ public class AuthorServiceImpl implements AuthorService {
     private final PhotoRepository photoRepository;
 
     @Override
+    @Cacheable(cacheNames = "authorsAll")
     public Iterable<Author> findAll() {
         return authorRepository.findAll();
     }
 
     @Override
+    @Cacheable(cacheNames = "author", key = "#authorNumber")
     public Optional<Author> findByAuthorNumber(final String authorNumber) {
+        System.out.println("A consultar authorNumber " + authorNumber + " na base de dados.");
         return authorRepository.findByAuthorNumber(authorNumber);
     }
 
     @Override
+    @Cacheable(cacheNames = "authorsByName", key = "#name")
     public List<Author> findByName(String name) {
         return authorRepository.searchByNameNameStartsWith(name);
     }
 
     @Override
+    @CacheEvict(cacheNames = {"author", "authorsAll", "authorsByName", "coauthorsByAuthorNumber", "topAuthors"}, allEntries = true)
     public Author create(final CreateAuthorRequest resource) {
         /*
          * Since photos can be null (no photo uploaded) that means the URI can be null as well.
@@ -64,10 +71,11 @@ public class AuthorServiceImpl implements AuthorService {
     }
 
     @Override
+    @CacheEvict(cacheNames = {"author", "authorsAll", "authorsByName", "coauthorsByAuthorNumber", "topAuthors"}, allEntries = true)
     public Author partialUpdate(final String authorNumber, final UpdateAuthorRequest request, final long desiredVersion) {
         // first let's check if the object exists so we don't create a new object with
         // save
-        final var author = findByAuthorNumber(authorNumber)
+        final var author = authorRepository.findByAuthorNumber(authorNumber)
                 .orElseThrow(() -> new NotFoundException("Cannot update an object that does not yet exist"));
         /*
          * Since photos can be null (no photo uploaded) that means the URI can be null as well.
@@ -97,6 +105,7 @@ public class AuthorServiceImpl implements AuthorService {
         return authorRepository.save(author);
     }
     @Override
+    @Cacheable(cacheNames = "topAuthors")
     public List<AuthorLendingView> findTopAuthorByLendings() {
         Pageable pageableRules = PageRequest.of(0,5);
         return authorRepository.findTopAuthorByLendings(pageableRules).getContent();
@@ -108,10 +117,12 @@ public class AuthorServiceImpl implements AuthorService {
     }
 
     @Override
+    @Cacheable(cacheNames = "coauthorsByAuthorNumber", key = "#authorNumber")
     public List<Author> findCoAuthorsByAuthorNumber(String authorNumber) {
         return authorRepository.findCoAuthorsByAuthorNumber(authorNumber);
     }
     @Override
+    @CacheEvict(cacheNames = {"author", "authorsAll", "authorsByName", "coauthorsByAuthorNumber", "topAuthors"}, allEntries = true)
     public Optional<Author> removeAuthorPhoto(String authorNumber, long desiredVersion) {
         Author author = authorRepository.findByAuthorNumber(authorNumber)
                 .orElseThrow(() -> new NotFoundException("Cannot find reader"));
@@ -124,4 +135,3 @@ public class AuthorServiceImpl implements AuthorService {
     }
 
 }
-

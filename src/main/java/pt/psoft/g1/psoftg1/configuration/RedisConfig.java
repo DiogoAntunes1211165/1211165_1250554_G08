@@ -38,7 +38,7 @@ public class RedisConfig {
 
     @Bean
     public LettuceConnectionFactory redisConnectionFactory() {
-        RedisStandaloneConfiguration config = null;
+        RedisStandaloneConfiguration config;
 
         if (redisUrl != null && !redisUrl.isBlank()) {
             try {
@@ -55,7 +55,7 @@ public class RedisConfig {
                     if (userInfo.contains(":")) {
                         password = userInfo.substring(userInfo.indexOf(':') + 1);
                     }
-                    if (password != null && !password.isBlank()) {
+                    if (!password.isBlank()) {
                         config.setPassword(RedisPassword.of(password));
                     }
                 }
