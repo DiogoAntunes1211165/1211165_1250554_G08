@@ -7,13 +7,18 @@ import pt.psoft.g1.psoftg1.authormanagement.services.UpdateAuthorRequest;
 import pt.psoft.g1.psoftg1.exceptions.ConflictException;
 import pt.psoft.g1.psoftg1.shared.model.EntityWithPhoto;
 import pt.psoft.g1.psoftg1.shared.model.Name;
+import pt.psoft.g1.psoftg1.shared.services.generator.IdGeneratorFactory;
 
 
 public class Author extends EntityWithPhoto {
 
+    private final IdGeneratorFactory idGeneratorFactory = new IdGeneratorFactory();
+
     @Getter
     private String authorNumber;
 
+    @Getter
+    private String genId;
 
     private long version;
 
@@ -27,6 +32,13 @@ public class Author extends EntityWithPhoto {
 
     }
 
+    public void setGenId(String genId) {
+        if (this.genId == null) {
+            this.genId = idGeneratorFactory.getGenerator().generateId("AUT");
+        }else {
+            this.genId = genId;
+        }
+    }
 
     public void setName(String name) {
         this.name = new Name(name);
@@ -48,10 +60,11 @@ public class Author extends EntityWithPhoto {
         return authorNumber;
     }
 
-    public Author(String name, String bio, String photoURI) {
+    public Author(String name, String bio, String photoURI, String genId) {
         setName(name);
         setBio(bio);
         setPhotoInternal(photoURI);
+        setGenId(genId);
     }
 
 

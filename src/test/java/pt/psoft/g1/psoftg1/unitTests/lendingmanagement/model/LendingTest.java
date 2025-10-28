@@ -31,7 +31,7 @@ class LendingTest {
     public static void setup(){
         Author author = new Author("Manuel Antonio Pina",
                 "Manuel António Pina foi um jornalista e escritor português, premiado em 2011 com o Prémio Camões",
-                null);
+                null, null);
         authors.add(author);
         book = new Book("9782826012092",
                 "O Inspetor Max",
