@@ -17,9 +17,6 @@ public class Author extends EntityWithPhoto {
     @Getter
     private String authorNumber;
 
-    @Getter
-    private String genId;
-
     private long version;
 
 
@@ -32,11 +29,11 @@ public class Author extends EntityWithPhoto {
 
     }
 
-    public void setGenId(String genId) {
-        if (this.genId == null) {
-            this.genId = idGeneratorFactory.getGenerator().generateId("AUT");
+    public void setAuthorNumber(String genId) {
+        if (this.authorNumber == null) {
+            this.authorNumber = idGeneratorFactory.getGenerator().generateId("AUT");
         }else {
-            this.genId = genId;
+            this.authorNumber = genId;
         }
     }
 
@@ -48,10 +45,6 @@ public class Author extends EntityWithPhoto {
         this.bio = new Bio(bio);
     }
 
-    public void setAuthorNumber(String authorNumber) {
-        this.authorNumber = authorNumber;
-    }
-
     public Long getVersion() {
         return version;
     }
@@ -60,11 +53,11 @@ public class Author extends EntityWithPhoto {
         return authorNumber;
     }
 
-    public Author(String name, String bio, String photoURI, String genId) {
+    public Author(String name, String bio, String photoURI, String authorNumber) {
         setName(name);
         setBio(bio);
         setPhotoInternal(photoURI);
-        setGenId(genId);
+        setAuthorNumber(authorNumber);
     }
 
 
