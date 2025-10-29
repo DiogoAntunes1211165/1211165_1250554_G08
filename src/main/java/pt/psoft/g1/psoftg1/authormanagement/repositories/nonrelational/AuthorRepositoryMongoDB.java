@@ -30,7 +30,7 @@ public interface AuthorRepositoryMongoDB extends MongoRepository<AuthorDocument,
 
     // Busca por authorNumber
     @Cacheable
-    @Query("{ 'authorNumber': ?0 }")
+    @Query("{ 'author_number': ?0 }")
     Optional<AuthorDocument> findByAuthorNumber(String authorNumber);
 
     // Busca autores cujo nome começa com string fornecida

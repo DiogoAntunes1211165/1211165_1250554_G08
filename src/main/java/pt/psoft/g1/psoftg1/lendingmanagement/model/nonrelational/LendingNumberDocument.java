@@ -19,6 +19,8 @@ public class LendingNumberDocument {
     @Field("lending_number")
     private String lendingNumber;
 
+    protected LendingNumberDocument() {
+    }
 
     public LendingNumberDocument(int year, int sequential) {
         if (year < 1970 || LocalDate.now().getYear() < year)

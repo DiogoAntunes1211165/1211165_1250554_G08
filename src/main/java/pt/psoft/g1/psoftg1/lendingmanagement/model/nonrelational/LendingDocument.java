@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Version;
-import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import pt.psoft.g1.psoftg1.bookmanagement.model.nonrelational.BookDocument;
@@ -25,7 +24,7 @@ public class LendingDocument {
     @Getter
     @Setter
     @Field("lending_number")
-    private LendingNumberDocument lendingNumberEntity; // Reference to the embedded LendingNumberEntity
+    private LendingNumberDocument lendingNumber; // Reference to the embedded LendingNumberEntity
 
     @Getter
     @Setter
@@ -82,7 +81,7 @@ public class LendingDocument {
     public LendingDocument(BookDocument book, ReaderDetailsDocument readerDetails, LendingNumberDocument lendingNumber, LocalDate startDate, LocalDate limitDate, LocalDate returnedDate, int fineValuePerDayInCents) {
         this.book = book;
         this.readerDetails = readerDetails;
-        this.lendingNumberEntity = lendingNumber;
+        this.lendingNumber = lendingNumber;
         this.startDate = startDate;
         this.limitDate = limitDate;
         this.returnedDate = returnedDate;
