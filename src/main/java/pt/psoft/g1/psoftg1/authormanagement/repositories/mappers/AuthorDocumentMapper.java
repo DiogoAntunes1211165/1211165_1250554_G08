@@ -11,7 +11,8 @@ import pt.psoft.g1.psoftg1.shared.model.nonrelational.PhotoDocument;
 @Mapper(componentModel = "spring")
 public interface AuthorDocumentMapper {
 
-    @Mapping(target = "authorNumber", source = "authorNumber")
+    // AuthorDocument's builder/constructor doesn't accept authorNumber (it's the Mongo @Id),
+    // so we must not map authorNumber when creating the document.
     @Mapping(target = "name", expression = "java(author.getName().toString())")
     @Mapping(target = "bio", expression = "java(author.getBio().toString())")
     AuthorDocument toDocument(Author author);
