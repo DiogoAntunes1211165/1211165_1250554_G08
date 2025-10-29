@@ -13,7 +13,7 @@ services:
       # SQL Server
       - DB_HOST=sqlserverg08.database.windows.net
       - DB_PORT=1433
-      - DB_NAME=psoft-g1
+      - DB_NAME=psoftg1
       - DB_USER=grupo08
       - DB_PASSWORD=Grupo8arqsoft_
 
