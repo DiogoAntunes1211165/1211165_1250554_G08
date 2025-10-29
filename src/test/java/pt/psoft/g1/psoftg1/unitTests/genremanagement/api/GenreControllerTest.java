@@ -1,4 +1,4 @@
-package pt.psoft.g1.psoftg1.unitTests.lendingmanagement.api;
+package pt.psoft.g1.psoftg1.unitTests.genremanagement.api;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

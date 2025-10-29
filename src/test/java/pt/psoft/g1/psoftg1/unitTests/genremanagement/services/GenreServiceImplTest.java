@@ -1,4 +1,4 @@
-package pt.psoft.g1.psoftg1.unitTests.lendingmanagement.services;
+package pt.psoft.g1.psoftg1.unitTests.genremanagement.services;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
