@@ -13,7 +13,7 @@ import pt.psoft.g1.psoftg1.usermanagement.model.relational.UserEntity;
 import java.util.List;
 import java.util.Optional;
 
-@Repository
+
 @CacheConfig(cacheNames = "users")
 public interface UserRepositorySQL extends CrudRepository<UserEntity, Long> {
 

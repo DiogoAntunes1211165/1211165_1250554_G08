@@ -8,6 +8,8 @@ import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.time.LocalDate;
 
 /**
@@ -16,7 +18,10 @@ import java.time.LocalDate;
  */
 @Embeddable
 @NoArgsConstructor
-public class LendingNumberEntity  {
+public class LendingNumberEntity implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     @Column(name = "LENDING_NUMBER", length = 32)
     @NotNull

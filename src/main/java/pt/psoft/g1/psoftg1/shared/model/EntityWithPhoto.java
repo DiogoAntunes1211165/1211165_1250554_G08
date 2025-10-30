@@ -27,10 +27,13 @@ public abstract class EntityWithPhoto {
             this.photo = null;
         } else {
             try {
-                //If the Path object instantiation succeeds, it means that we have a valid Path
-                this.photo = new Photo(Path.of(photoURI));
+                Path path = Path.of(photoURI);
+                if (this.photo == null) {
+                    this.photo = new Photo(path); // só cria novo se não existir
+                } else {
+                    this.photo.setPhotoFile(photoURI); // atualiza o existente
+                }
             } catch (InvalidPathException e) {
-                //For some reason it failed, let's set to null to avoid invalid references to photos
                 this.photo = null;
             }
         }

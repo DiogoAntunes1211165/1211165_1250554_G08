@@ -6,12 +6,17 @@ import jakarta.persistence.Embeddable;
 import jakarta.validation.constraints.Size;
 import lombok.EqualsAndHashCode;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 
 @Embeddable
 @EqualsAndHashCode
 public class IsbnEntity implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     @Size(min = 10, max = 13)
     @Column(name="ISBN", length = 16)
 

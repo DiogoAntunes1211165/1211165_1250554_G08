@@ -1,17 +1,18 @@
 package pt.psoft.g1.psoftg1.bookmanagement.repositories.relational;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.Tuple;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.cache.annotation.CacheEvict;
 import pt.psoft.g1.psoftg1.authormanagement.model.Author;
 import pt.psoft.g1.psoftg1.authormanagement.model.relacional.AuthorEntity;
 import  pt.psoft.g1.psoftg1.bookmanagement.model.Book;
@@ -25,12 +26,14 @@ import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
 import pt.psoft.g1.psoftg1.genremanagement.model.relational.GenreEntity;
 import pt.psoft.g1.psoftg1.genremanagement.repositories.relational.GenreRepositorySql;
 
-import pt.psoft.g1.psoftg1.lendingmanagement.model.relational.LendingEntity;
-
+import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.dao.DataIntegrityViolationException;
+import jakarta.persistence.PersistenceException;
+import pt.psoft.g1.psoftg1.exceptions.ConflictException;
 
 @Profile("sqlServer")
 @Qualifier("bookSqlServerRepo")
@@ -115,41 +118,99 @@ public class BookRepositorySqlImpl implements BookRepository {
 
 
     @Override
+    @CacheEvict(value = "bookByIsbn", key = "#book.isbn")
     public Book save(Book book) {
 
-        BookEntity bookEntity = bookEntityMapper.toEntity(book);
+        // Map domain to a temporary entity
+        BookEntity newEntity = bookEntityMapper.toEntity(book);
 
+        // Resolve authors: ensure each AuthorEntity is the persisted instance
+        List<AuthorEntity> resolvedAuthors = new ArrayList<>();
+        for (AuthorEntity author : newEntity.getAuthors()) {
+            List<AuthorEntity> found = authorRepository.searchByNameName(author.getName());
+            AuthorEntity existingAuthor = null;
+            if (found != null && !found.isEmpty()) existingAuthor = found.get(0);
+            if (existingAuthor == null) existingAuthor = authorRepository.save(author);
+            resolvedAuthors.add(existingAuthor);
+        }
+        newEntity.setAuthors(resolvedAuthors);
 
-        List<AuthorEntity> authors = new ArrayList<>(); // Lista para autores que serão associados ao livro
-
-        for (AuthorEntity author : bookEntity.getAuthors()) {
-            // Verifica se o autor já existe no banco de dados pelo nome
-            AuthorEntity existingAuthor = authorRepository.searchByNameName(author.getName()).get(0);
-            if (existingAuthor == null) {
-                // Se o autor não existe, salva o novo autor
-                existingAuthor = authorRepository.save(author);
+        // Resolve genre
+        if (newEntity.getGenre() != null) {
+            Optional<GenreEntity> existingGenreOpt = genreRepository.findByString(newEntity.getGenre().getGenre());
+            if (existingGenreOpt.isPresent()) {
+                newEntity.setGenre(existingGenreOpt.get());
+            } else {
+                GenreEntity saved = genreRepository.save(newEntity.getGenre());
+                newEntity.setGenre(saved);
             }
-            authors.add(existingAuthor); // Adiciona o autor à lista de autores do livro
         }
 
-        if (bookEntity.getGenre() != null) {
-            // Verifica se o gênero já existe no banco de dados pelo nome
-            GenreEntity existingGenre = genreRepository.findByString(bookEntity.getGenre().getGenre()).get();
-            if (existingGenre == null) {
-                // Se o gênero não existe, salva o novo gênero
-                existingGenre = genreRepository.save(bookEntity.getGenre());
-                bookEntity.setGenre(existingGenre); // Atualiza o gênero da BookEntity com o gênero persistido
+        final String isbn = book.getIsbn();
+
+        int attempts = 0;
+        while (true) {
+            try {
+                // Try to find existing BookEntity by ISBN using EntityManager (bypass repository cache)
+                BookEntity existing;
+                try {
+                    TypedQuery<BookEntity> tq = em.createQuery("SELECT DISTINCT b FROM BookEntity b WHERE b.isbn.isbn = :isbn", BookEntity.class);
+                    tq.setParameter("isbn", isbn);
+                    existing = tq.getSingleResult();
+                } catch (NoResultException nre) {
+                    existing = null;
+                }
+
+                if (existing != null) {
+                    // Update mutable fields on existing entity
+                    existing.setAuthors(newEntity.getAuthors());
+                    existing.setGenre(newEntity.getGenre());
+                    // Copy embedded title and description via reflection (fields are private)
+                    try {
+                        Field titleField = BookEntity.class.getDeclaredField("title");
+                        titleField.setAccessible(true);
+                        titleField.set(existing, BookEntity.class.getDeclaredField("title").get(newEntity));
+
+                        Field descField = BookEntity.class.getDeclaredField("description");
+                        descField.setAccessible(true);
+                        descField.set(existing, BookEntity.class.getDeclaredField("description").get(newEntity));
+                    } catch (NoSuchFieldException | IllegalAccessException ignored) {
+                    }
+
+                    BookEntity saved = bookRepositorySqlServer.save(existing);
+                    return bookEntityMapper.toDomain(saved);
+                } else {
+                    // No existing book -> insert new
+                    BookEntity saved = bookRepositorySqlServer.save(newEntity);
+                    return bookEntityMapper.toDomain(saved);
+                }
+            } catch (DataIntegrityViolationException | PersistenceException ex) {
+                attempts++;
+                if (attempts > 1) {
+                    throw new ConflictException("Could not update book: " + ex.getMessage());
+                }
+                // Try to recover: another transaction may have inserted the book concurrently. Re-query and loop to update it.
+                try {
+                    TypedQuery<BookEntity> tq = em.createQuery("SELECT b FROM BookEntity b WHERE b.isbn.isbn = :isbn", BookEntity.class);
+                    tq.setParameter("isbn", isbn);
+                    BookEntity found = tq.getSingleResult();
+                    // copy fields into newEntity to allow update path on retry
+                    try {
+                        Field pkField = BookEntity.class.getDeclaredField("pk");
+                        pkField.setAccessible(true);
+                        pkField.setLong(newEntity, found.getPk());
+
+                        Field versionField = BookEntity.class.getDeclaredField("version");
+                        versionField.setAccessible(true);
+                        versionField.set(newEntity, found.getVersion());
+                    } catch (NoSuchFieldException | IllegalAccessException ignored) {
+                    }
+                    // loop will retry and hit existing path
+                } catch (PersistenceException ex2) {
+                    throw new ConflictException("Could not update book: " + ex.getMessage());
+                }
             }
-            bookEntity.setGenre(existingGenre); // Atualiza o gênero da BookEntity com o gênero persistido
         }
-
-        // Atualiza a lista de autores da BookEntity com os autores persistidos
-        bookEntity.setAuthors(authors);
-
-        BookEntity savedEntity = bookRepositorySqlServer.save(bookEntity);
-
-        return bookEntityMapper.toDomain(savedEntity);
-
     }
 
     @Override
@@ -197,8 +258,5 @@ public class BookRepositorySqlImpl implements BookRepository {
 
         return books;
     }
-
-
-
 
 }

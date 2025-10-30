@@ -14,6 +14,8 @@ import pt.psoft.g1.psoftg1.lendingmanagement.model.Lending;
 import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
 import pt.psoft.g1.psoftg1.readermanagement.model.relational.ReaderDetailsEntity;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
@@ -28,7 +30,11 @@ import java.util.Optional;
 @Table(uniqueConstraints = {
         @UniqueConstraint(columnNames = {"LENDING_NUMBER"})})
 @NoArgsConstructor
-public class LendingEntity {
+public class LendingEntity implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     @Getter
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

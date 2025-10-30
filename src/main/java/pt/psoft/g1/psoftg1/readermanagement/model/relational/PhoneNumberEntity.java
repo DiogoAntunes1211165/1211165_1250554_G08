@@ -3,8 +3,15 @@ package pt.psoft.g1.psoftg1.readermanagement.model.relational;
 
 import jakarta.persistence.Embeddable;
 
+import java.io.Serial;
+import java.io.Serializable;
+
 @Embeddable
-public class PhoneNumberEntity {
+public class PhoneNumberEntity implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     String phoneNumber;
 
     public PhoneNumberEntity(String phoneNumber) {
