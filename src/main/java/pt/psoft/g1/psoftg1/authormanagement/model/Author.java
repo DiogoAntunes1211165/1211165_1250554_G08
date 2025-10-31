@@ -31,7 +31,7 @@ public class Author extends EntityWithPhoto {
 
     public void setAuthorNumber(String genId) {
         if (this.authorNumber == null) {
-            this.authorNumber = idGeneratorFactory.getGenerator().generateId("AUT");
+            this.authorNumber = idGeneratorFactory.getGenerator().generateId();
         }else {
             this.authorNumber = genId;
         }
