@@ -21,6 +21,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Pageable;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +37,10 @@ public class ReaderServiceImpl implements ReaderService {
 
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "readersAll", allEntries = true),
+            @CacheEvict(cacheNames = "topReaders", allEntries = true)
+    })
     public ReaderDetails create(CreateReaderRequest request, String photoURI) {
         if (userRepo.findByUsername(request.getUsername()).isPresent()) {
             throw new ConflictException("Username already exists!");
@@ -86,6 +93,10 @@ public class ReaderServiceImpl implements ReaderService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "readersAll", allEntries = true),
+            @CacheEvict(cacheNames = "topReaders", allEntries = true)
+    })
     public ReaderDetails update(final String id, final UpdateReaderRequest request, final long desiredVersion, String photoURI){
         final ReaderDetails readerDetails = readerRepo.findByUserId(id)
                 .orElseThrow(() -> new NotFoundException("Cannot find reader"));
@@ -118,27 +129,32 @@ public class ReaderServiceImpl implements ReaderService {
 
 
     @Override
+    @Cacheable(cacheNames = "readers", key = "#readerNumber")
     public Optional<ReaderDetails> findByReaderNumber(String readerNumber) {
         return this.readerRepo.findByReaderNumber(readerNumber);
     }
 
     @Override
+    @Cacheable(cacheNames = "readersByPhone", key = "#phoneNumber")
     public List<ReaderDetails> findByPhoneNumber(String phoneNumber) {
         return this.readerRepo.findByPhoneNumber(phoneNumber);
     }
 
     @Override
+    @Cacheable(cacheNames = "readersByUsername", key = "#username")
     public Optional<ReaderDetails> findByUsername(final String username) {
         return this.readerRepo.findByUsername(username);
     }
 
 
     @Override
+    @Cacheable(cacheNames = "readersAll")
     public Iterable<ReaderDetails> findAll() {
         return this.readerRepo.findAll();
     }
 
     @Override
+    @Cacheable(cacheNames = "topReaders", key = "#minTop")
     public List<ReaderDetails> findTopReaders(int minTop) {
         if(minTop < 1) {
             throw new IllegalArgumentException("Minimum top reader must be greater than 0");
@@ -172,6 +188,10 @@ public class ReaderServiceImpl implements ReaderService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "readersAll", allEntries = true),
+            @CacheEvict(cacheNames = "readers", key = "#readerNumber")
+    })
     public Optional<ReaderDetails> removeReaderPhoto(String readerNumber, long desiredVersion) {
         ReaderDetails readerDetails = readerRepo.findByReaderNumber(readerNumber)
                 .orElseThrow(() -> new NotFoundException("Cannot find reader"));
@@ -184,6 +204,7 @@ public class ReaderServiceImpl implements ReaderService {
     }
 
     @Override
+    @Cacheable(cacheNames = "searchReaders", key = "#page.pageNumber + '_' + #page.pageSize + '_' + (#query != null ? #query.name : '') + '_' + (#query != null ? #query.phone : '') + '_' + (#query != null ? #query.username : '')")
     public List<ReaderDetails> searchReaders(pt.psoft.g1.psoftg1.shared.services.Page page, SearchReadersQuery query) {
         if (page == null)
             page = new pt.psoft.g1.psoftg1.shared.services.Page(1, 10);
