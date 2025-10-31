@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = 'maven:3.9.2-eclipse-temurin-17-alpine'
+        SONARQUBE_ENV = 'sonarqube'  // nome configurado no Jenkins
     }
 
     stages {
@@ -27,6 +28,30 @@ pipeline {
                 docker run --rm -v \$(pwd):/app -w /app ${DOCKER_IMAGE} \
                 mvn -Dtest=pt.psoft.g1.psoftg1.unitTests.**.*Test test
                 """
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                echo 'Running SonarQube analysis (Azure VM)...'
+                withSonarQubeEnv("${SONARQUBE_ENV}") {
+                    sh """
+                    docker run --rm -v \$(pwd):/app -w /app ${DOCKER_IMAGE} \
+                    mvn sonar:sonar \
+                        -Dsonar.projectKey=psoft-g1 \
+                        -Dsonar.projectName="PSoft G1 Project" \
+                        -Dsonar.host.url=http://74.161.33.56:9000 \
+                        -Dsonar.login=squ_186e07b99759c0ff10a3f1127bbb2b79ed20a393
+                    """
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 2, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
             }
         }
 
