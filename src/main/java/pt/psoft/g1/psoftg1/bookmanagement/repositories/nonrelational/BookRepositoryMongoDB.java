@@ -12,12 +12,15 @@ import java.util.Optional;
 public interface BookRepositoryMongoDB extends MongoRepository<BookDocument, String> {
 
     // Pesquisa livros por género (campo interno)
+    @Query("{ 'genre.genre': { $regex: ?0, $options: 'i' } }")
     List<BookDocument> findByGenre_Genre(String genre);
 
     // Pesquisa livros pelo título (ignora maiúsculas/minúsculas)
+    @Query("{ 'title.title': { $regex: ?0, $options: 'i' } }")
     List<BookDocument> findByTitleContainingIgnoreCase(String title);
 
     // Pesquisa livros pelo nome do autor (campo dentro da lista authors)
+    @Query(value = "{ 'authors.name.name': { $regex: ?0, $options: 'i' } }")
     List<BookDocument> findByAuthors_NameContainingIgnoreCase(String name);
 
     // Pesquisa por ISBN
@@ -25,6 +28,7 @@ public interface BookRepositoryMongoDB extends MongoRepository<BookDocument, Str
     Optional<BookDocument> findByIsbn(String isbn);
 
     // Pesquisa por número do autor
+    @Query(value = "{ 'authors.authorNumber': ?0 }")
     List<BookDocument> findByAuthors_AuthorNumber(String authorNumber);
 
     // Pesquisa genérica combinada (usada pelo searchBooks)

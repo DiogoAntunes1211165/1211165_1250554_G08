@@ -15,6 +15,7 @@ public interface ReaderRepositoryMongoDB extends MongoRepository<ReaderDetailsDo
     Optional<ReaderDetailsDocument> findByReaderNumber(String readerNumber);
 
     // Busca por número de telefone
+    @Query ("{ 'phone_number.phone_number': ?0}")
     List<ReaderDetailsDocument> findByPhoneNumber(String phoneNumber);
 
     // Busca por username (via campo aninhado no documento Reader)

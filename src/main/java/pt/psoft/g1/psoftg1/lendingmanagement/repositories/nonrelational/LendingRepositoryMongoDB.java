@@ -13,7 +13,7 @@ import java.util.Optional;
 public interface LendingRepositoryMongoDB extends MongoRepository<LendingDocument, String> {
 
     // Equivalente de findByLendingNumber
-    @Query("{ 'lendingNumber.lendingNumber' : ?0 }")
+    @Query("{ 'lending_number.lending_number' : ?0 }")
     Optional<LendingDocument> findByLendingNumber(String lendingNumber);
 
 

@@ -2,12 +2,15 @@ package pt.psoft.g1.psoftg1.lendingmanagement.repositories.mappers;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Mappings;
 import pt.psoft.g1.psoftg1.authormanagement.model.nonrelational.BioDocument;
 import pt.psoft.g1.psoftg1.bookmanagement.model.nonrelational.DescriptionDocument;
 import pt.psoft.g1.psoftg1.bookmanagement.model.nonrelational.IsbnDocument;
 import pt.psoft.g1.psoftg1.bookmanagement.model.nonrelational.TitleDocument;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.Lending;
+import pt.psoft.g1.psoftg1.lendingmanagement.model.LendingNumber;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.nonrelational.LendingDocument;
+import pt.psoft.g1.psoftg1.lendingmanagement.model.nonrelational.LendingNumberDocument;
 import pt.psoft.g1.psoftg1.readermanagement.model.BirthDate;
 import pt.psoft.g1.psoftg1.readermanagement.model.nonrelational.BirthDateDocument;
 import pt.psoft.g1.psoftg1.readermanagement.model.nonrelational.PhoneNumberDocument;
@@ -22,13 +25,22 @@ import java.util.Optional;
 @Mapper(componentModel = "spring")
 public interface LendingDocumentMapper {
 
+    @Mapping(source = "lendingNumber", target = "lendingNumber")
     LendingDocument toDocument(Lending lending);
 
     @Mapping(source = "readerDetails.gdprConsent", target = "readerDetails.gdpr")
     @Mapping(source = "readerDetails.marketingConsent", target = "readerDetails.marketing")
     @Mapping(source = "readerDetails.thirdPartySharingConsent", target = "readerDetails.thirdParty")
     @Mapping(source = "readerDetails.photo", target = "readerDetails.photoURI")
+    @Mapping(source = "lendingNumber", target = "lendingNumber")
     Lending toDomain(LendingDocument document);
+
+    default LendingNumberDocument map(String value){
+        if (value == null){
+            return null;
+        }
+        return new LendingNumberDocument(value);
+    }
 
     default String map(PhotoDocument photoDocument) {
         if (photoDocument == null) {

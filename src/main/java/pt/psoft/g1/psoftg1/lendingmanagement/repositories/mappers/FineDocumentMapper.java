@@ -5,6 +5,7 @@ import pt.psoft.g1.psoftg1.bookmanagement.model.nonrelational.DescriptionDocumen
 import pt.psoft.g1.psoftg1.bookmanagement.model.nonrelational.IsbnDocument;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.Fine;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.nonrelational.FineDocument;
+import pt.psoft.g1.psoftg1.lendingmanagement.model.nonrelational.LendingNumberDocument;
 import pt.psoft.g1.psoftg1.readermanagement.model.BirthDate;
 import pt.psoft.g1.psoftg1.readermanagement.model.nonrelational.BirthDateDocument;
 import pt.psoft.g1.psoftg1.readermanagement.model.nonrelational.PhoneNumberDocument;
@@ -46,4 +47,7 @@ public interface FineDocumentMapper {
         return value.orElse(null);
     }
 
+    default LendingNumberDocument mapToLendingNumberDocument(String value){
+        return value != null ? new LendingNumberDocument(Integer.parseInt(value.split("/")[1])) : null;
+    }
 }
