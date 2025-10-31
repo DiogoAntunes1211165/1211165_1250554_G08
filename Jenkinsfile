@@ -21,12 +21,12 @@ pipeline {
             }
         }
 
-        stage('Run Unit Tests') {
+        stage('Run Unit Tests + JaCoCo') {
             steps {
-                echo 'Running only unit tests inside Docker container...'
+                echo 'Running unit tests and generating JaCoCo report...'
                 sh """
                 docker run --rm -v \$(pwd):/app -w /app ${DOCKER_IMAGE} \
-                mvn -Dtest=pt.psoft.g1.psoftg1.unitTests.**.*Test test
+                mvn clean verify
                 """
             }
         }
@@ -41,7 +41,9 @@ pipeline {
                         -Dsonar.projectKey=psoft-g1 \
                         -Dsonar.projectName="PSoft G1 Project" \
                         -Dsonar.host.url=http://74.161.33.56:9000 \
-                        -Dsonar.login=squ_186e07b99759c0ff10a3f1127bbb2b79ed20a393
+                        -Dsonar.login=squ_186e07b99759c0ff10a3f1127bbb2b79ed20a393 \
+                        -Dsonar.java.coveragePlugin=jacoco \
+                        -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
                     """
                 }
             }
