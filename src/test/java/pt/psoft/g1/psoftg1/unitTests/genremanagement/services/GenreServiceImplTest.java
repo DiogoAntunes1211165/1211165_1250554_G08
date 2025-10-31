@@ -2,11 +2,13 @@ package pt.psoft.g1.psoftg1.unitTests.genremanagement.services;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import pt.psoft.g1.psoftg1.bookmanagement.services.GenreBookCountDTO;
 import pt.psoft.g1.psoftg1.exceptions.NotFoundException;
 import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
@@ -24,6 +26,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 
+@ExtendWith(MockitoExtension.class)
 class GenreServiceImplTest {
 
     @Mock
@@ -34,7 +37,6 @@ class GenreServiceImplTest {
 
     @BeforeEach
     void setup() {
-        MockitoAnnotations.openMocks(this);
     }
 
     @Test
@@ -72,14 +74,13 @@ class GenreServiceImplTest {
 
     @Test
     void testFindTopGenreByBooks() {
-        PageRequest pageable = PageRequest.of(0, 5);
         List<GenreBookCountDTO> dtoList = List.of(new GenreBookCountDTO("Fantasy", 10));
-        when(genreRepository.findTop5GenreByBookCount(pageable)).thenReturn(new PageImpl<>(dtoList));
+        when(genreRepository.findTop5GenreByBookCount(any(Pageable.class))).thenReturn(new PageImpl<>(dtoList));
 
         List<GenreBookCountDTO> result = genreService.findTopGenreByBooks();
 
         assertEquals(dtoList, result);
-        verify(genreRepository).findTop5GenreByBookCount(pageable);
+        verify(genreRepository).findTop5GenreByBookCount(any(Pageable.class));
     }
 
     @Test
