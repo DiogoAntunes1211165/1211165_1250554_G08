@@ -7,14 +7,21 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.OneToOne;
 import lombok.Getter;
-import pt.psoft.g1.psoftg1.shared.model.Photo;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Getter
 @MappedSuperclass
-public abstract class EntityWithPhotoEntity {
+public abstract class EntityWithPhotoEntity implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+
     @Nullable
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name="photo_id")
@@ -24,6 +31,13 @@ public abstract class EntityWithPhotoEntity {
     //will contain all the logic to set the photo
     public void setPhoto(String photoUri) {
         this.setPhotoInternal(photoUri);
+    }
+
+    // Jackson will prefer this setter when deserializing JSON objects for the `photo` property.
+    // Keep it as an overload so existing code that sets a photo by URI (String) continues to work.
+    @JsonProperty("photo")
+    public void setPhoto(PhotoEntity photoEntity) {
+        this.photo = photoEntity;
     }
 
     protected void setPhotoInternal(String photoURI) {

@@ -638,7 +638,6 @@ public class Bootstrapper implements CommandLineRunner {
         for(i = 0; i < 6; i++){
             ++seq;
             if(lendingRepository.findByLendingNumber("2025/" + seq).isEmpty()){
-                System.out.println("lending number already exists: " + "2024/" + seq);
                 startDate = LocalDate.of(2024, 5,(i+8));
                 returnedDate = LocalDate.of(2024,5,(2*i+8));
                 lending = Lending.newBootstrappingLending(books.get(i), readers.get(1+i%4), 2025, seq, startDate, returnedDate, lendingDurationInDays, fineValuePerDayInCents);

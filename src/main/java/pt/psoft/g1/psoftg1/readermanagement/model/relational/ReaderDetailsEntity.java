@@ -17,6 +17,8 @@ import pt.psoft.g1.psoftg1.shared.model.relational.EntityWithPhotoEntity;
 import pt.psoft.g1.psoftg1.usermanagement.model.Reader;
 import pt.psoft.g1.psoftg1.usermanagement.model.relational.ReaderEntity;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.nio.file.InvalidPathException;
 import java.util.List;
 
@@ -24,7 +26,12 @@ import java.util.List;
 
 @Entity
 @Table(name = "READER_DETAILS")
-public class ReaderDetailsEntity extends EntityWithPhotoEntity {
+public class ReaderDetailsEntity extends EntityWithPhotoEntity implements Serializable {
+
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long pk;

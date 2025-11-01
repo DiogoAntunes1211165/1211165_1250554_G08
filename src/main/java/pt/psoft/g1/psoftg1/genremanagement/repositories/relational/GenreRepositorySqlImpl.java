@@ -20,6 +20,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
+
 @Repository("GenreRepositorySqlImpl")
 @Profile("sqlServer")
 @Transactional
@@ -45,15 +48,20 @@ public class GenreRepositorySqlImpl implements GenreRepository {
 
     @Override
     public Optional<Genre> findByString(String genreName) {
-        if (genreRepositorySql.findByString(genreName).isEmpty()) {
+        // Call the underlying repository only once to avoid duplicate cache lookups and potential race with cached empty values.
+        Optional<GenreEntity> opt = genreRepositorySql.findByString(genreName);
+        if (opt.isEmpty()) {
             return Optional.empty();
         } else {
-            Genre genre = genreEntityMapper.toDomain(genreRepositorySql.findByString(genreName).get());
-            return Optional.of(genre);
+            return Optional.of(genreEntityMapper.toDomain(opt.get()));
         }
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "allGenres", allEntries = true),
+            @CacheEvict(value = "genreByName", key = "#genre.genre")
+    })
     public Genre save(Genre genre) {
         GenreEntity entity = genreEntityMapper.toEntity(genre); // Convert Genre to GenreEntity
         GenreEntity saved = genreRepositorySql.save(entity); // Save the entity
@@ -61,13 +69,17 @@ public class GenreRepositorySqlImpl implements GenreRepository {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "allGenres", allEntries = true),
+            @CacheEvict(value = "genreByName", key = "#genre.genre")
+    })
     public void delete(Genre genre) {
         genreRepositorySql.delete(genreEntityMapper.toEntity(genre));
     }
 
     @Override
     public Page<GenreBookCountDTO> findTop5GenreByBookCount(Pageable pageable) {
-        return null;
+        return genreRepositorySql.findTop5GenreByBookCount(pageable);
     }
 
     @Override

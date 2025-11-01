@@ -5,6 +5,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import pt.psoft.g1.psoftg1.authormanagement.api.AuthorLendingView;
 import pt.psoft.g1.psoftg1.authormanagement.model.Author;
 import pt.psoft.g1.psoftg1.authormanagement.repositories.AuthorRepository;
@@ -25,16 +27,20 @@ public class AuthorServiceImpl implements AuthorService {
     private final PhotoRepository photoRepository;
 
     @Override
+
     public Iterable<Author> findAll() {
         return authorRepository.findAll();
     }
 
     @Override
+
     public Optional<Author> findByAuthorNumber(final String authorNumber) {
+        System.out.println("A consultar authorNumber " + authorNumber + " na base de dados.");
         return authorRepository.findByAuthorNumber(authorNumber);
     }
 
     @Override
+
     public List<Author> findByName(String name) {
         return authorRepository.searchByNameNameStartsWith(name);
     }
@@ -67,7 +73,7 @@ public class AuthorServiceImpl implements AuthorService {
     public Author partialUpdate(final String authorNumber, final UpdateAuthorRequest request, final long desiredVersion) {
         // first let's check if the object exists so we don't create a new object with
         // save
-        final var author = findByAuthorNumber(authorNumber)
+        final var author = authorRepository.findByAuthorNumber(authorNumber)
                 .orElseThrow(() -> new NotFoundException("Cannot update an object that does not yet exist"));
         /*
          * Since photos can be null (no photo uploaded) that means the URI can be null as well.
@@ -124,4 +130,3 @@ public class AuthorServiceImpl implements AuthorService {
     }
 
 }
-

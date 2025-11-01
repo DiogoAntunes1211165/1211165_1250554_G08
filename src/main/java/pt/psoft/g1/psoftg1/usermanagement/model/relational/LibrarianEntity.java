@@ -3,8 +3,15 @@ package pt.psoft.g1.psoftg1.usermanagement.model.relational;
 import jakarta.persistence.Entity;
 import pt.psoft.g1.psoftg1.usermanagement.model.Role;
 
+import java.io.Serial;
+import java.io.Serializable;
+
 @Entity
-public class LibrarianEntity extends UserEntity {
+public class LibrarianEntity extends UserEntity implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     protected LibrarianEntity() {
         // for ORM only
     }

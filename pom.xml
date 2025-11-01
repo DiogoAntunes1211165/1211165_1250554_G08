@@ -51,7 +51,6 @@
         </dependency>
 
         <!-- MySQL Driver -->
-        <!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
@@ -124,7 +123,7 @@
         <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
             <artifactId>mssql-jdbc</artifactId>
-            <version>11.2.0.jre8</version>
+            <version>11.2.0.jre17</version>
         </dependency>
 
         <!-- Mongo Driver -->
@@ -139,6 +138,7 @@
             <artifactId>firebase-admin</artifactId>
             <version>9.3.0</version>
         </dependency>
+
 
         <!-- Redis (Spring Data Redis + Lettuce client) -->
         <dependency>

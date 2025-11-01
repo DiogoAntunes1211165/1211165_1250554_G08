@@ -8,8 +8,15 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 
+import java.io.Serial;
+import java.io.Serializable;
+
 @Embeddable
-public class TitleEntity {
+public class TitleEntity implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     @Transient
     private final int TITLE_MAX_LENGTH = 128;
     @NotBlank(message = "Title cannot be blank")

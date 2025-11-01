@@ -5,9 +5,17 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 
+import java.io.Serial;
+import java.io.Serializable;
+
 @Entity
 @Table
-public class GenreEntity {
+public class GenreEntity implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+
     @Transient
     private final int GENRE_MAX_LENGTH = 100;
     @Id

@@ -8,8 +8,15 @@ import jakarta.persistence.Transient;
 import jakarta.validation.constraints.Size;
 import pt.psoft.g1.psoftg1.shared.model.StringUtilsCustom;
 
+import java.io.Serial;
+import java.io.Serializable;
+
 @Embeddable
-public class DescriptionEntity {
+public class DescriptionEntity implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     @Transient
     private final int DESC_MAX_LENGTH = 4096;
 
