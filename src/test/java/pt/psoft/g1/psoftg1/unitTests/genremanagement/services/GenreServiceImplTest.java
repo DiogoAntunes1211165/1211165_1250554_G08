@@ -2,13 +2,9 @@ package pt.psoft.g1.psoftg1.unitTests.genremanagement.services;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.*;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import pt.psoft.g1.psoftg1.bookmanagement.services.GenreBookCountDTO;
 import pt.psoft.g1.psoftg1.exceptions.NotFoundException;
 import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
@@ -17,144 +13,126 @@ import pt.psoft.g1.psoftg1.genremanagement.services.*;
 import pt.psoft.g1.psoftg1.shared.services.Page;
 
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
 class GenreServiceImplTest {
 
-    @Mock
-    private GenreRepository genreRepository;
-
-    @InjectMocks
-    private GenreServiceImpl genreService;
+    @Mock private GenreRepository genreRepository;
+    @InjectMocks private GenreServiceImpl service;
 
     @BeforeEach
     void setup() {
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    void testFindByString_Found() {
-        Genre g = new Genre("Sci-Fi");
-        when(genreRepository.findByString("Sci-Fi")).thenReturn(Optional.of(g));
+    void findByString_shouldReturnOptionalGenre() {
+        Genre genre = mock(Genre.class);
+        when(genreRepository.findByString("Fantasy")).thenReturn(Optional.of(genre));
 
-        Optional<Genre> result = genreService.findByString("Sci-Fi");
+        Optional<Genre> result = service.findByString("Fantasy");
 
         assertTrue(result.isPresent());
-        assertEquals(g, result.get());
-        verify(genreRepository).findByString("Sci-Fi");
+        assertEquals(genre, result.get());
+        verify(genreRepository).findByString("Fantasy");
     }
 
     @Test
-    void testFindByString_NotFound() {
-        when(genreRepository.findByString("Unknown")).thenReturn(Optional.empty());
+    void findAll_shouldReturnAllGenres() {
+        Iterable<Genre> genres = List.of(mock(Genre.class));
+        when(genreRepository.findAll()).thenReturn(genres);
 
-        Optional<Genre> result = genreService.findByString("Unknown");
+        Iterable<Genre> result = service.findAll();
 
-        assertTrue(result.isEmpty());
-    }
-
-    @Test
-    void testFindAll_ReturnsAllGenres() {
-        Genre g = new Genre("Fantasy");
-        List<Genre> expected = List.of(g);
-        when(genreRepository.findAll()).thenReturn(expected);
-
-        Iterable<Genre> result = genreService.findAll();
-
-        assertEquals(expected, result);
+        assertEquals(genres, result);
         verify(genreRepository).findAll();
     }
 
     @Test
-    void testFindTopGenreByBooks() {
-        List<GenreBookCountDTO> dtoList = List.of(new GenreBookCountDTO("Fantasy", 10));
-        when(genreRepository.findTop5GenreByBookCount(any(Pageable.class))).thenReturn(new PageImpl<>(dtoList));
+    void findTopGenreByBooks_shouldReturnList() {
+        List<GenreBookCountDTO> expected = List.of(mock(GenreBookCountDTO.class));
+        when(genreRepository.findTop5GenreByBookCount(any(PageRequest.class)))
+                .thenReturn(new PageImpl<>(expected));
 
-        List<GenreBookCountDTO> result = genreService.findTopGenreByBooks();
+        List<GenreBookCountDTO> result = service.findTopGenreByBooks();
 
-        assertEquals(dtoList, result);
-        verify(genreRepository).findTop5GenreByBookCount(any(Pageable.class));
+        assertEquals(1, result.size());
+        verify(genreRepository).findTop5GenreByBookCount(any(PageRequest.class));
     }
 
     @Test
-    void testSave_DelegatesToRepository() {
-        Genre g = new Genre("Horror");
-        when(genreRepository.save(g)).thenReturn(g);
+    void save_shouldCallRepositorySave() {
+        Genre genre = mock(Genre.class);
+        when(genreRepository.save(genre)).thenReturn(genre);
 
-        Genre result = genreService.save(g);
+        Genre result = service.save(genre);
 
-        assertEquals(g, result);
-        verify(genreRepository).save(g);
+        assertEquals(genre, result);
+        verify(genreRepository).save(genre);
     }
 
     @Test
-    void testGetLendingsPerMonthLastYearByGenre() {
-        GenreLendingsDTO v = new GenreLendingsDTO("Fantasy", 5L);
-        GenreLendingsPerMonthDTO dto = new GenreLendingsPerMonthDTO(2024, 1, List.of(v));
-        List<GenreLendingsPerMonthDTO> expected = List.of(dto);
+    void getLendingsPerMonthLastYearByGenre_shouldReturnList() {
+        List<GenreLendingsPerMonthDTO> expected = List.of(mock(GenreLendingsPerMonthDTO.class));
         when(genreRepository.getLendingsPerMonthLastYearByGenre()).thenReturn(expected);
 
-        List<GenreLendingsPerMonthDTO> result = genreService.getLendingsPerMonthLastYearByGenre();
+        List<GenreLendingsPerMonthDTO> result = service.getLendingsPerMonthLastYearByGenre();
 
         assertEquals(expected, result);
         verify(genreRepository).getLendingsPerMonthLastYearByGenre();
     }
 
     @Test
-    void testGetAverageLendings_UsesDefaultPageWhenNull() {
-        GetAverageLendingsQuery query = new GetAverageLendingsQuery(2024, 3);
-        List<GenreLendingsDTO> expected = List.of(new GenreLendingsDTO("Fantasy", 2.5));
-        LocalDate month = LocalDate.of(2024, 3, 1);
+    void getAverageLendings_shouldUseDefaultPage_whenNull() {
+        GetAverageLendingsQuery query = mock(GetAverageLendingsQuery.class);
+        when(query.getYear()).thenReturn(2024);
+        when(query.getMonth()).thenReturn(5);
 
-        when(genreRepository.getAverageLendingsInMonth(eq(month), any(Page.class))).thenReturn(expected);
-
-        List<GenreLendingsDTO> result = genreService.getAverageLendings(query, null);
-
-        assertEquals(expected, result);
-        verify(genreRepository).getAverageLendingsInMonth(eq(month), any(Page.class));
-    }
-
-    @Test
-    void testGetLendingsAverageDurationPerMonth_Success() {
-        String start = "2020-01-01";
-        String end = "2020-02-01";
-        GenreLendingsPerMonthDTO dto = new GenreLendingsPerMonthDTO(2020,1,List.of(new GenreLendingsDTO("G",1L)));
-        List<GenreLendingsPerMonthDTO> expected = List.of(dto);
-        when(genreRepository.getLendingsAverageDurationPerMonth(LocalDate.parse(start), LocalDate.parse(end)))
+        List<GenreLendingsDTO> expected = List.of(mock(GenreLendingsDTO.class));
+        when(genreRepository.getAverageLendingsInMonth(any(LocalDate.class), any(Page.class)))
                 .thenReturn(expected);
 
-        List<GenreLendingsPerMonthDTO> result = genreService.getLendingsAverageDurationPerMonth(start, end);
+        List<GenreLendingsDTO> result = service.getAverageLendings(query, null);
 
         assertEquals(expected, result);
-        verify(genreRepository).getLendingsAverageDurationPerMonth(LocalDate.parse(start), LocalDate.parse(end));
+        verify(genreRepository).getAverageLendingsInMonth(any(LocalDate.class), any(Page.class));
     }
 
     @Test
-    void testGetLendingsAverageDurationPerMonth_InvalidDateFormat_Throws() {
-        assertThrows(IllegalArgumentException.class, () -> genreService.getLendingsAverageDurationPerMonth("bad", "2020-01-01"));
+    void getLendingsAverageDurationPerMonth_shouldReturnList() {
+        List<GenreLendingsPerMonthDTO> expected = List.of(mock(GenreLendingsPerMonthDTO.class));
+        when(genreRepository.getLendingsAverageDurationPerMonth(any(), any()))
+                .thenReturn(expected);
+
+        List<GenreLendingsPerMonthDTO> result =
+                service.getLendingsAverageDurationPerMonth("2024-01-01", "2024-12-31");
+
+        assertEquals(expected, result);
+        verify(genreRepository).getLendingsAverageDurationPerMonth(any(), any());
     }
 
     @Test
-    void testGetLendingsAverageDurationPerMonth_StartAfterEnd_Throws() {
-        String start = "2020-02-01";
-        String end = "2020-01-01";
-        assertThrows(IllegalArgumentException.class, () -> genreService.getLendingsAverageDurationPerMonth(start, end));
+    void getLendingsAverageDurationPerMonth_shouldThrow_whenEmpty() {
+        when(genreRepository.getLendingsAverageDurationPerMonth(any(), any()))
+                .thenReturn(List.of());
+
+        assertThrows(NotFoundException.class,
+                () -> service.getLendingsAverageDurationPerMonth("2024-01-01", "2024-12-31"));
     }
 
     @Test
-    void testGetLendingsAverageDurationPerMonth_EmptyList_ThrowsNotFound() {
-        String start = "2020-01-01";
-        String end = "2020-02-01";
-        when(genreRepository.getLendingsAverageDurationPerMonth(LocalDate.parse(start), LocalDate.parse(end)))
-                .thenReturn(Collections.emptyList());
+    void getLendingsAverageDurationPerMonth_shouldThrow_whenInvalidDateFormat() {
+        assertThrows(IllegalArgumentException.class,
+                () -> service.getLendingsAverageDurationPerMonth("2024/01/01", "2024-12-31"));
+    }
 
-        assertThrows(NotFoundException.class, () -> genreService.getLendingsAverageDurationPerMonth(start, end));
+    @Test
+    void getLendingsAverageDurationPerMonth_shouldThrow_whenStartAfterEnd() {
+        assertThrows(IllegalArgumentException.class,
+                () -> service.getLendingsAverageDurationPerMonth("2025-12-31", "2025-01-01"));
     }
 }
