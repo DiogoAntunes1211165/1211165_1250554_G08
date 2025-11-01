@@ -139,7 +139,6 @@
             <version>9.3.0</version>
         </dependency>
 
-
         <!-- Redis (Spring Data Redis + Lettuce client) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -180,8 +179,9 @@
             <plugin>
                 <groupId>org.pitest</groupId>
                 <artifactId>pitest-maven</artifactId>
-                <version>LATEST</version>
+                <version>1.9.10</version>
             </plugin>
+
 
             <!-- Maven Compiler -->
             <plugin>
