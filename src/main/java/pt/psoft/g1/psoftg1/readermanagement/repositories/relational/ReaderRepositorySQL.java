@@ -18,42 +18,62 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-@CacheConfig(cacheNames = {"readers"})
+// Use a distinct cache name for repository-layer entity caching to avoid clashes with
+// service-layer caches that hold domain objects.
+@CacheConfig(cacheNames = {"readerEntities"})
 public interface ReaderRepositorySQL extends CrudRepository<ReaderDetailsEntity, Long> {
 
     // ---- SAVE ----
     // (Se existirem operações de escrita, limpam o cache)
     @Override
+    @CacheEvict(allEntries = true)
     <S extends ReaderDetailsEntity> S save(S entity);
 
     @Override
 
+    @CacheEvict(allEntries = true)
     <S extends ReaderDetailsEntity> Iterable<S> saveAll(Iterable<S> entities);
 
 
     @Override
+    @Cacheable(key = "#id")
     Optional<ReaderDetailsEntity> findById(Long id);
 
     // ---- FIND BY READER NUMBER ----
-    @Query(value = "SELECT * FROM reader_details rd WHERE rd.reader_number = :readerNumber", nativeQuery = true)
+    // Use JPQL with JOIN FETCH to eagerly load reader, its authorities and interestList to avoid LazyInitializationException
+    @Query("SELECT DISTINCT r FROM ReaderDetailsEntity r " +
+            "JOIN FETCH r.reader u " +
+            "LEFT JOIN FETCH u.authorities " +
+            "LEFT JOIN FETCH r.interestList " +
+            "WHERE r.readerNumber.readerNumber = :readerNumber")
+    @Cacheable(key = "#readerNumber")
     Optional<ReaderDetailsEntity> findByReaderNumber(@Param("readerNumber") @NotNull String readerNumber);
 
     // ---- FIND BY PHONE NUMBER ----
-    @Query(value = "SELECT * FROM reader_details rd WHERE rd.phone_number = :phoneNumber", nativeQuery = true)
+    @Query("SELECT DISTINCT r FROM ReaderDetailsEntity r " +
+            "JOIN FETCH r.reader u " +
+            "LEFT JOIN FETCH u.authorities " +
+            "LEFT JOIN FETCH r.interestList " +
+            "WHERE r.phoneNumber.phoneNumber = :phoneNumber")
+    @Cacheable(key = "#phoneNumber")
     List<ReaderDetailsEntity> findByPhoneNumber(@Param("phoneNumber") @NotNull String phoneNumber);
 
     // ---- FIND BY USERNAME ----
-    @Query("SELECT r " +
-            "FROM ReaderDetailsEntity r " +
-            "JOIN UserEntity u ON r.reader.id = u.id " +
+    @Query("SELECT DISTINCT r FROM ReaderDetailsEntity r " +
+            "JOIN FETCH r.reader u " +
+            "LEFT JOIN FETCH u.authorities " +
+            "LEFT JOIN FETCH r.interestList " +
             "WHERE u.username = :username")
+    @Cacheable(key = "#username")
     Optional<ReaderDetailsEntity> findByUsername(@Param("username") @NotNull String username);
 
     // ---- FIND BY USER ID ----
-    @Query("SELECT r " +
-            "FROM ReaderDetailsEntity r " +
-            "JOIN UserEntity u ON r.reader.id = u.id " +
+    @Query("SELECT DISTINCT r FROM ReaderDetailsEntity r " +
+            "JOIN FETCH r.reader u " +
+            "LEFT JOIN FETCH u.authorities " +
+            "LEFT JOIN FETCH r.interestList " +
             "WHERE u.id = :userId")
+    @Cacheable(key = "#userId")
     Optional<ReaderDetailsEntity> findByUserId(@Param("userId") @NotNull Long userId);
 
     // ---- COUNT READERS FROM CURRENT YEAR ----
@@ -61,6 +81,7 @@ public interface ReaderRepositorySQL extends CrudRepository<ReaderDetailsEntity,
             "FROM ReaderDetailsEntity rd " +
             "JOIN UserEntity u ON rd.reader.id = u.id " +
             "WHERE YEAR(u.createdAt) = YEAR(CURRENT_DATE)")
+    @Cacheable(key = "'countCurrentYear'")
     int getCountFromCurrentYear();
 
     // ---- TOP READERS ----
@@ -69,6 +90,7 @@ public interface ReaderRepositorySQL extends CrudRepository<ReaderDetailsEntity,
             "JOIN LendingEntity l ON l.readerDetails.pk = rd.pk " +
             "GROUP BY rd " +
             "ORDER BY COUNT(l) DESC")
+    @Cacheable(key = "#pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort")
     Page<ReaderDetailsEntity> findTopReaders(Pageable pageable);
 
     // ---- TOP READERS BY GENRE ----
@@ -80,8 +102,10 @@ public interface ReaderRepositorySQL extends CrudRepository<ReaderDetailsEntity,
             "WHERE g.genre = :genre " +
             "AND l.startDate >= :startDate " +
             "AND l.startDate <= :endDate " +
-            "GROUP BY rd.pk " +
+            // group by the whole entity (rd) so SQL Server doesn't require listing every column
+            "GROUP BY rd " +
             "ORDER BY COUNT(l.pk) DESC")
+    @Cacheable(key = "#genre + ':' + #startDate.toString() + ':' + #endDate.toString() + ':' + #pageable.pageNumber + ':' + #pageable.pageSize + ':' + #pageable.sort")
     Page<ReaderBookCountDTO> findTopByGenre(Pageable pageable,
                                             @Param("genre") String genre,
                                             @Param("startDate") LocalDate startDate,

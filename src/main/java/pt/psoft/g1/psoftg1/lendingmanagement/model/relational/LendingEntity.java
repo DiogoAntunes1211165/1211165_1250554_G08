@@ -168,7 +168,9 @@ public class LendingEntity implements Serializable {
         return this.lendingNumberEntity.toString();
     }
 
-
-
-
+    // Allow repositories to update the embedded lending number when recovering from
+    // a unique constraint collision (e.g. concurrent lending creation).
+    public void setLendingNumberEntity(LendingNumberEntity lendingNumberEntity) {
+        this.lendingNumberEntity = lendingNumberEntity;
+    }
 }

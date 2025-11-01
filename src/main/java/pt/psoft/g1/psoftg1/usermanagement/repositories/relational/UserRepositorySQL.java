@@ -18,15 +18,15 @@ import java.util.Optional;
 public interface UserRepositorySQL extends CrudRepository<UserEntity, Long> {
 
     @Cacheable(key = "#id")
-    @Query(value = "SELECT * FROM T_USER WHERE id = ?1", nativeQuery = true)
+    @Query("SELECT DISTINCT u FROM UserEntity u LEFT JOIN FETCH u.authorities WHERE u.id = ?1")
     Optional<UserEntity> findById(Long id);
 
     @Cacheable(key = "#username")
-    @Query(value = "SELECT * FROM T_USER WHERE username = ?1", nativeQuery = true)
+    @Query("SELECT DISTINCT u FROM UserEntity u LEFT JOIN FETCH u.authorities WHERE u.username = ?1")
     Optional<UserEntity> findByUsername(String username);
 
     @Cacheable(key = "#name")
-    @Query(value = "SELECT * FROM T_USER WHERE name = ?1", nativeQuery = true)
+    @Query("SELECT DISTINCT u FROM UserEntity u LEFT JOIN FETCH u.authorities WHERE u.name = ?1")
     List<UserEntity> findByName(String name);
 
     @CacheEvict(allEntries = true)

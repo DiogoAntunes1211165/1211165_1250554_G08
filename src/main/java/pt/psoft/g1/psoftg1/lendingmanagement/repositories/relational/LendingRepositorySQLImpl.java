@@ -12,13 +12,14 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
-import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
+import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import pt.psoft.g1.psoftg1.bookmanagement.model.relational.BookEntity;
 import pt.psoft.g1.psoftg1.bookmanagement.repositories.relational.BookRepositorySQL;
 
 import pt.psoft.g1.psoftg1.lendingmanagement.model.Lending;
 import pt.psoft.g1.psoftg1.lendingmanagement.repositories.LendingRepository;
-import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
 import pt.psoft.g1.psoftg1.readermanagement.model.relational.ReaderDetailsEntity;
 import pt.psoft.g1.psoftg1.readermanagement.repositories.relational.ReaderRepositorySQL;
 
@@ -33,10 +34,13 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import pt.psoft.g1.psoftg1.lendingmanagement.model.relational.LendingNumberEntity;
 
 @Profile("sqlServer")
 @Repository("LendingRepositorySQLImpl")
 public class LendingRepositorySQLImpl implements LendingRepository {
+
+    private static final Logger logger = LoggerFactory.getLogger(LendingRepositorySQLImpl.class);
 
     private final LendingRepositorySQL repository;
     private final LendingEntityMapper lendingEntityMapper;
@@ -61,6 +65,7 @@ public class LendingRepositorySQLImpl implements LendingRepository {
 
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<Lending> findByLendingNumber(String lendingNumber) {
         // use mapper to convert LendingEntity to Lending
         if (repository.findByLendingNumber(lendingNumber).isEmpty()) {
@@ -74,6 +79,7 @@ public class LendingRepositorySQLImpl implements LendingRepository {
 
 
     @Override
+    @Transactional(readOnly = true)
     public List<Lending> listByReaderNumberAndIsbn(String readerNumber, String isbn) {
         // Exemplo de delegação de uma busca
 
@@ -96,6 +102,7 @@ public class LendingRepositorySQLImpl implements LendingRepository {
 
 
     @Override
+    @Transactional(readOnly = true)
     public List<Lending> listOutstandingByReaderNumber(String readerNumber) {
         List <Lending> lendings = new ArrayList<>();
 
@@ -119,16 +126,20 @@ public class LendingRepositorySQLImpl implements LendingRepository {
         return this.repository.getAvgLendingDurationByIsbn(isbn);
     }
 
-
     @Override
+    @Transactional(readOnly = true)
     public List<Lending> getOverdue(Page page) {
         final CriteriaBuilder cb = em.getCriteriaBuilder();
         final CriteriaQuery<LendingEntity> cq = cb.createQuery(LendingEntity.class);
         final Root<LendingEntity> root = cq.from(LendingEntity.class);
         cq.select(root);
+        cq.distinct(true);
 
         final List<Predicate> where = new ArrayList<>();
 
+        // ensure we fetch book and its authors and readerDetails to avoid later lazy access in the mapper
+        root.fetch("book", JoinType.LEFT).fetch("authors", JoinType.LEFT);
+        root.fetch("readerDetails", JoinType.LEFT);
 
         // Select overdue lendings where returnedDate is null and limitDate is before the current date
         where.add(cb.isNull(root.get("returnedDate")));
@@ -154,13 +165,18 @@ public class LendingRepositorySQLImpl implements LendingRepository {
 
 
     @Override
+    @Transactional(readOnly = true)
     public List<Lending> searchLendings(Page page, String readerNumber, String isbn, Boolean returned, LocalDate startDate, LocalDate endDate) {
         final CriteriaBuilder cb = em.getCriteriaBuilder();
         final CriteriaQuery<LendingEntity> cq = cb.createQuery(LendingEntity.class);
         final Root<LendingEntity> lendingRoot = cq.from(LendingEntity.class);
-        final Join<LendingEntity, Book> bookJoin = lendingRoot.join("book");
-        final Join<LendingEntity, ReaderDetails> readerDetailsJoin = lendingRoot.join("readerDetails");
+        // Use entity types for joins to match JPA metamodel and avoid ClassCastException
+        final Join<LendingEntity, BookEntity> bookJoin = lendingRoot.join("book");
+        final Join<LendingEntity, ReaderDetailsEntity> readerDetailsJoin = lendingRoot.join("readerDetails");
+        // make sure authors are fetched to avoid lazy initialization when mapping
+        lendingRoot.fetch("book", JoinType.LEFT).fetch("authors", JoinType.LEFT);
         cq.select(lendingRoot);
+        cq.distinct(true);
 
         final List<Predicate> where = new ArrayList<>();
 
@@ -199,6 +215,7 @@ public class LendingRepositorySQLImpl implements LendingRepository {
 
 
     @Override
+    @Transactional
     public Lending save(Lending lending) {
         LendingEntity entity = lendingEntityMapper.toEntity(lending);
 
@@ -219,6 +236,8 @@ public class LendingRepositorySQLImpl implements LendingRepository {
                                 bookToSave.setGenre(existingGenreOpt.get());
                             } else {
                                 GenreEntity savedGenre = genreRepository.save(bookToSave.getGenre());
+                                // Ensure the genre is flushed to the DB before saving the book that references it
+                                em.flush();
                                 bookToSave.setGenre(savedGenre);
                             }
                         }
@@ -240,14 +259,43 @@ public class LendingRepositorySQLImpl implements LendingRepository {
                     }
                 }
 
+                // ---- NEW FLOW: generate lendingNumber as {year}/{seq} where seq = countFromCurrentYear+1 ----
+                // If caller provided a lending number, keep it; otherwise compute the next seq for the year
+                LendingNumberEntity provided = entity.getLendingNumberEntity();
+                if (provided == null) {
+                    int nextSeq = this.repository.getCountFromCurrentYear() + 1;
+                    // generate as {year}/{nextSeq} (LendingNumberEntity(int) uses current year)
+                    entity.setLendingNumberEntity(new LendingNumberEntity(nextSeq));
+                } else {
+                    // keep provided lending number
+                    entity.setLendingNumberEntity(provided);
+                }
+
+                // First save: try to persist with the generated lending number. If a concurrent transaction already
+                // used the same number, the catch block will regenerate and retry several times.
                 LendingEntity savedEntity = repository.save(entity);
+                // force flush so DB assigns values and constraint violations surface now
+                em.flush();
+
                 return lendingEntityMapper.toDomain(savedEntity);
             } catch (DataIntegrityViolationException | PersistenceException ex) {
                 attempts++;
-                if (attempts > 1) {
-                    throw ex; // give up after one recovery attempt
+                // Allow several attempts to recover (concurrent creates can cause lending-number collisions).
+                if (attempts > 5) {
+                    throw ex; // give up after several attempts
                 }
-                // Try to recover by re-querying the book by ISBN using EntityManager (bypass caches)
+
+                // First, try to regenerate a fresh lending number sequence to avoid UNIQUE constraint on LENDING_NUMBER
+                try {
+                    int newSeq = this.repository.getCountFromCurrentYear() + 1;
+                    entity.setLendingNumberEntity(new LendingNumberEntity(newSeq));
+                    logger.warn("Lending save conflict detected - regenerated lending number to {} (attempt {})", newSeq, attempts);
+                } catch (Exception regenEx) {
+                    logger.warn("Failed to regenerate lending number during recovery attempt {}", attempts, regenEx);
+                    // ignore regeneration errors and fall back to other recovery steps
+                }
+
+                // Then try to recover by re-querying the book by ISBN using EntityManager (bypass caches)
                 try {
                     if (entity.getBook() != null && entity.getBook().getIsbn() != null) {
                         TypedQuery<BookEntity> tq = em.createQuery("SELECT b FROM BookEntity b WHERE b.isbn.isbn = :isbn", BookEntity.class);
@@ -257,18 +305,20 @@ public class LendingRepositorySQLImpl implements LendingRepository {
                     }
                 } catch (NoResultException nre) {
                     // If we can't find it, rethrow original exception to surface error
+                    logger.error("Failed to recover BookEntity by ISBN while recovering from DataIntegrityViolationException", nre);
                     throw ex;
                 }
-                // and retry the loop once more
-            }
-        }
-    }
+                // and retry the loop with the (possibly) new lending number
+             }
+         }
+     }
 
 
-    @Override
-    public void delete(Lending lending) {
-        repository.delete(lendingEntityMapper.toEntity(lending));
-    }
+     @Override
+     @Transactional
+     public void delete(Lending lending) {
+         repository.delete(lendingEntityMapper.toEntity(lending));
+     }
 
 
 

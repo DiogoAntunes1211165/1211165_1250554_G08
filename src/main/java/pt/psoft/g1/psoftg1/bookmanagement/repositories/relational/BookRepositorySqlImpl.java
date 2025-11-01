@@ -13,7 +13,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.cache.annotation.CacheEvict;
-import pt.psoft.g1.psoftg1.authormanagement.model.Author;
 import pt.psoft.g1.psoftg1.authormanagement.model.relacional.AuthorEntity;
 import  pt.psoft.g1.psoftg1.bookmanagement.model.Book;
 import pt.psoft.g1.psoftg1.authormanagement.repositories.relational.AuthorRepositorySQL;
@@ -22,7 +21,6 @@ import pt.psoft.g1.psoftg1.bookmanagement.repositories.BookRepository;
 import pt.psoft.g1.psoftg1.bookmanagement.repositories.mappers.BookEntityMapper;
 import pt.psoft.g1.psoftg1.bookmanagement.services.BookCountDTO;
 import pt.psoft.g1.psoftg1.bookmanagement.services.SearchBooksQuery;
-import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
 import pt.psoft.g1.psoftg1.genremanagement.model.relational.GenreEntity;
 import pt.psoft.g1.psoftg1.genremanagement.repositories.relational.GenreRepositorySql;
 
@@ -142,6 +140,8 @@ public class BookRepositorySqlImpl implements BookRepository {
                 newEntity.setGenre(existingGenreOpt.get());
             } else {
                 GenreEntity saved = genreRepository.save(newEntity.getGenre());
+                // Ensure the INSERT for genre is flushed to the database so that subsequent book INSERTs referencing this FK succeed
+                em.flush();
                 newEntity.setGenre(saved);
             }
         }
@@ -228,8 +228,8 @@ public class BookRepositorySqlImpl implements BookRepository {
         final CriteriaBuilder cb = em.getCriteriaBuilder();
         final CriteriaQuery<BookEntity> cq = cb.createQuery(BookEntity.class);
         final Root<BookEntity> root = cq.from(BookEntity.class);
-        final Join<BookEntity, Genre> genreJoin = root.join("genre");
-        final Join<BookEntity, Author> authorJoin = root.join("authors");
+        final Join<BookEntity, GenreEntity> genreJoin = root.join("genre");
+        final Join<BookEntity, AuthorEntity> authorJoin = root.join("authors");
         cq.select(root);
 
         final List<Predicate> where = new ArrayList<>();

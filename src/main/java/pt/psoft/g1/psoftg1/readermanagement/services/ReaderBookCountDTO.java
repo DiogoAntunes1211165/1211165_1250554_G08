@@ -13,6 +13,6 @@ import pt.psoft.g1.psoftg1.readermanagement.model.relational.ReaderDetailsEntity
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReaderBookCountDTO {
-    private ReaderDetailsEntity readerDetails;
+    private ReaderDetails readerDetails;
     private long lendingCount;
 }
