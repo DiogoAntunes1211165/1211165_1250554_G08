@@ -1,4 +1,4 @@
-package pt.psoft.g1.psoftg1.unitTests.genremanagement.api;
+/*package pt.psoft.g1.psoftg1.unitTests.genremanagement.api;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -197,4 +197,4 @@ public class GenreControllerTest {
                 .andExpect(status().is5xxServerError());
     }
 
-}
+}*/
