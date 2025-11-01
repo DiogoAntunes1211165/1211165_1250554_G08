@@ -1,4 +1,4 @@
-package pt.psoft.g1.psoftg1.integrationTests.lendingmanagement;
+package pt.psoft.g1.psoftg1.integrationTests.lendingmanagement.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;

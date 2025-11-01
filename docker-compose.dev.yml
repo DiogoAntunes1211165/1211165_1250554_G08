@@ -8,4 +8,4 @@ services:
     ports:
       - "8081:8080"
     environment:
-      - SPRING_PROFILES_ACTIVE=bootstrap,mongodb,google,openlibrary,base65
+      - SPRING_PROFILES_ACTIVE=bootstrap,sqlServer,google,openlibrary,base65
