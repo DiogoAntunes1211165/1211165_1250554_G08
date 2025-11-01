@@ -11,35 +11,28 @@ import pt.psoft.g1.psoftg1.authormanagement.model.nonrelational.AuthorDocument;
 import java.util.List;
 import java.util.Optional;
 
-@CacheConfig(cacheNames = "authors")
 @Repository
 public interface AuthorRepositoryMongoDB extends MongoRepository<AuthorDocument, String> {
 
     // Salvar ou atualizar limpa o cache
     @Override
-    @CacheEvict(allEntries = true)
     <S extends AuthorDocument> S save(S entity);
 
     @Override
-    @CacheEvict(allEntries = true)
     <S extends AuthorDocument> List<S> saveAll(Iterable<S> entities);
 
     @Override
-    @Cacheable
     Optional<AuthorDocument> findById(String id);
 
     // Busca por authorNumber
-    @Cacheable
     @Query("{ 'author_number': ?0 }")
     Optional<AuthorDocument> findByAuthorNumber(String authorNumber);
 
     // Busca autores cujo nome começa com string fornecida
-    @Cacheable
     @Query("{ 'name.name': { $regex: '^?0', $options: 'i' } }")
     List<AuthorDocument> findByNameStartsWith(String name);
 
     // Busca autores com nome exato
-    @Cacheable
     @Query("{ 'name.name': ?0 }")
     List<AuthorDocument> findByName(String name);
 
