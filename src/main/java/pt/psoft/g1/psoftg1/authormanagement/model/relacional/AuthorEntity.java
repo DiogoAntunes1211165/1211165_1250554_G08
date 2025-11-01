@@ -36,6 +36,7 @@ public class AuthorEntity extends EntityWithPhotoEntity implements Serializable 
     @Getter
     @Setter
     private String genId;
+
     @Embedded
     private NameEntity name;
 

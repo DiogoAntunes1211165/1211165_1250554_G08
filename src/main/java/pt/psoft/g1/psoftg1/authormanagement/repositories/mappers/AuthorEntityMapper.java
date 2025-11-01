@@ -2,7 +2,6 @@ package pt.psoft.g1.psoftg1.authormanagement.repositories.mappers;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Mappings;
 import pt.psoft.g1.psoftg1.authormanagement.model.Author;
 import pt.psoft.g1.psoftg1.authormanagement.model.Bio;
 import pt.psoft.g1.psoftg1.authormanagement.model.relacional.AuthorEntity;
@@ -15,11 +14,13 @@ import pt.psoft.g1.psoftg1.shared.model.relational.PhotoEntity;
 @Mapper(componentModel = "spring")
 public interface AuthorEntityMapper {
 
-    @Mapping(target = "authorNumber", source = "authorNumber")
+    // Map the entity's genId -> domain's authorNumber (domain expects the generated id string)
+    @Mapping(target = "authorNumber", source = "genId")
     Author toDomain(AuthorEntity authorEntity); // convert AuthorEntity to Author
 
 
-
+    // When converting from domain -> entity, ensure the genId field is populated from authorNumber
+    @Mapping(target = "genId", source = "authorNumber")
     AuthorEntity toEntity(Author author); // convert Author to AuthorEntity
 
     default String map(Photo photo) {
