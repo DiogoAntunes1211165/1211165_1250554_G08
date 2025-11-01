@@ -61,7 +61,8 @@ class LendingServiceImplTest {
         when(lendingRepository.listOutstandingByReaderNumber("123"))
                 .thenReturn(List.of(lateLending));
 
-        CreateLendingRequest req = new CreateLendingRequest("123", "978-0000");
+        // CreateLendingRequest constructor is (isbn, readerNumber)
+        CreateLendingRequest req = new CreateLendingRequest("978-0000", "123");
 
         assertThatThrownBy(() -> service.create(req))
                 .isInstanceOf(LendingForbiddenException.class)
@@ -75,7 +76,7 @@ class LendingServiceImplTest {
         when(lendingRepository.listOutstandingByReaderNumber("123"))
                 .thenReturn(List.of(lending, lending, lending));
 
-        CreateLendingRequest req = new CreateLendingRequest("123", "978-0000");
+        CreateLendingRequest req = new CreateLendingRequest("978-0000", "123");
 
         assertThatThrownBy(() -> service.create(req))
                 .isInstanceOf(LendingForbiddenException.class)
@@ -94,7 +95,7 @@ class LendingServiceImplTest {
         Lending saved = mock(Lending.class);
         when(lendingRepository.save(any(Lending.class))).thenReturn(saved);
 
-        CreateLendingRequest req = new CreateLendingRequest("123", "978-0000");
+        CreateLendingRequest req = new CreateLendingRequest("978-0000", "123");
         Lending result = service.create(req);
 
         assertThat(result).isEqualTo(saved);
