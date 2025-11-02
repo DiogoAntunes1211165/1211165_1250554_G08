@@ -22,6 +22,11 @@ public class AuthorDocument extends EntityWithPhotoDocument {
     private long version;
 
     @Getter
+    @Setter
+    @Field("gen_id")
+    private String genId;
+
+    @Getter
     @Field("name")
     private NameDocument name;
 
@@ -30,11 +35,11 @@ public class AuthorDocument extends EntityWithPhotoDocument {
     private BioDocument bio;
 
     @Builder
-    public AuthorDocument(String name, String bio, String photoURI, String authorNumber) {
+    public AuthorDocument(String name, String bio, String photoURI, String genId) {
         setName(name);
         setBio(bio);
         setPhotoInternal(photoURI);
-        setAuthorNumber(authorNumber);
+        setGenId(genId);
     }
 
     protected AuthorDocument() {}

@@ -17,7 +17,7 @@ public interface AuthorDocumentMapper {
     @Mapping(target = "bio", expression = "java(author.getBio().toString())")
     AuthorDocument toDocument(Author author);
 
-    @Mapping(target = "authorNumber", source = "authorNumber")
+    @Mapping(target = "genId", source = "genId")
     @Mapping(target = "name", expression = "java(authorDocument.getName().toString())")
     @Mapping(target = "bio", expression = "java(authorDocument.getBio().toString())")
     @Mapping(target = "photo", expression = "java((authorDocument.getPhoto() != null) ? authorDocument.getPhoto().getPhotoFile() : null)")

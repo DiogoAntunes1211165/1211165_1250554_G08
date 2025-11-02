@@ -15,12 +15,12 @@ import pt.psoft.g1.psoftg1.shared.model.relational.PhotoEntity;
 public interface AuthorEntityMapper {
 
     // Map the entity's genId -> domain's authorNumber (domain expects the generated id string)
-    @Mapping(target = "authorNumber", source = "genId")
+    @Mapping(target = "genId", source = "genId")
     Author toDomain(AuthorEntity authorEntity); // convert AuthorEntity to Author
 
 
     // When converting from domain -> entity, ensure the genId field is populated from authorNumber
-    @Mapping(target = "genId", source = "authorNumber")
+    @Mapping(target = "genId", source = "genId")
     AuthorEntity toEntity(Author author); // convert Author to AuthorEntity
 
     default String map(Photo photo) {
