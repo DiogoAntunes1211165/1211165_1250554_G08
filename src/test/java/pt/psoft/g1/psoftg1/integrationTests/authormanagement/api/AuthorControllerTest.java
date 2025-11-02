@@ -9,7 +9,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.annotation.Rollback;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import pt.psoft.g1.psoftg1.authormanagement.model.Author;
@@ -23,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-public class AuthorControllerOpaqueTest {
+public class AuthorControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -46,7 +45,7 @@ public class AuthorControllerOpaqueTest {
         Author savedAuth = authorRepository.save(author);
 
         // Act: Perform the GET request on the author
-        mockMvc.perform(get("/api/authors/{authorNumber}", 4052)
+        mockMvc.perform(get("/api/authors/{authorNumber}", savedAuth.getAuthorNumber())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("John Doe"))

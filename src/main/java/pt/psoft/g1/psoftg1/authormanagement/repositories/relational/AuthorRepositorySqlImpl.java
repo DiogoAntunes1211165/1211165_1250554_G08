@@ -69,7 +69,9 @@ public class AuthorRepositorySqlImpl implements AuthorRepository {
 
     @Override
     public Iterable<Author> findAll() {
-        return null;
+        List<Author> authors = new ArrayList<>();
+        authorRepositorySQL.findAll().forEach(authorEntity -> authors.add(authorEntityMapper.toDomain(authorEntity)));
+        return authors;
     }
 
     @Override

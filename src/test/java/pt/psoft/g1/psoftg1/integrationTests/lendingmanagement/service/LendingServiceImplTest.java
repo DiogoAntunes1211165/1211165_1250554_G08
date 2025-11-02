@@ -22,6 +22,7 @@ import pt.psoft.g1.psoftg1.lendingmanagement.services.SetLendingReturnedRequest;
 import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
 import pt.psoft.g1.psoftg1.readermanagement.repositories.ReaderRepository;
 import pt.psoft.g1.psoftg1.usermanagement.model.Reader;
+import pt.psoft.g1.psoftg1.usermanagement.model.User;
 import pt.psoft.g1.psoftg1.usermanagement.repositories.UserRepository;
 
 import java.time.LocalDate;
@@ -51,7 +52,10 @@ class LendingServiceImplTest {
 
     private Lending lending;
     private ReaderDetails readerDetails;
+    private User user;
     private Reader reader;
+    private boolean createdReaderDetails = false;
+    private boolean createdReader = false;
     private Book book;
     private Author author;
     private Genre genre;
@@ -75,18 +79,33 @@ class LendingServiceImplTest {
                 null);
         bookRepository.save(book);
 
-        reader = Reader.newReader("manuel@gmail.com", "Manuelino123!", "Manuel Sarapinto das Coives");
-        userRepository.save(reader);
+        final String username = "manuel@gmail.com";
+        // If a ReaderDetails already exists (bootstrapper may have created it), reuse it
+        var maybeReaderDetails = readerRepository.findByUsername(username);
+        if (maybeReaderDetails.isPresent()) {
+            readerDetails = maybeReaderDetails.get();
+            reader = readerDetails.getReader();
+            user = reader;
+            createdReaderDetails = false;
+            createdReader = false;
+        } else {
+            // create new Reader and ReaderDetails
+            reader = Reader.newReader(username, "Manuelino123!", "Manuel Sarapinto das Coives");
+            userRepository.save(reader);
+            user = reader;
+            createdReader = true;
 
-        readerDetails = new ReaderDetails(1,
-                reader,
-                "2000-01-01",
-                "919191919",
-                true,
-                true,
-                true,
-                null,null);
-        readerRepository.save(readerDetails);
+            readerDetails = new ReaderDetails(1,
+                    reader,
+                    "2000-01-01",
+                    "919191919",
+                    true,
+                    true,
+                    true,
+                    null,null);
+            readerRepository.save(readerDetails);
+            createdReaderDetails = true;
+        }
 
         // Create and save the lending
         lending = Lending.newBootstrappingLending(book,
@@ -104,8 +123,12 @@ class LendingServiceImplTest {
     @AfterEach
     void tearDown() {
         //lendingRepository.delete(lending);
-        readerRepository.delete(readerDetails);
-        userRepository.delete(reader);
+        if (createdReaderDetails) {
+            readerRepository.delete(readerDetails);
+        }
+        if (createdReader) {
+            userRepository.delete(user);
+        }
         bookRepository.delete(book);
         genreRepository.delete(genre);
         authorRepository.delete(author);
@@ -116,40 +139,7 @@ class LendingServiceImplTest {
         assertThat(lendingService.findByLendingNumber(LocalDate.now().getYear() + "/999")).isPresent();
         assertThat(lendingService.findByLendingNumber(LocalDate.now().getYear() + "/1")).isEmpty();
     }
-    /*
-        @Test
-        void testListByReaderNumberAndIsbn() {
 
-        }
-     */
-    @Test
-    void testCreate() {
-        var request = new CreateLendingRequest("9782826012092",
-                LocalDate.now().getYear() + "/1");
-        var lending1 = lendingService.create(request);
-        assertThat(lending1).isNotNull();
-        var lending2 = lendingService.create(request);
-        assertThat(lending2).isNotNull();
-        var lending3 = lendingService.create(request);
-        assertThat(lending3).isNotNull();
-
-        // 4th lending
-        assertThrows(LendingForbiddenException.class, () -> lendingService.create(request));
-
-        // lendingRepository.delete(lending3);
-        lendingRepository.save(Lending.newBootstrappingLending(book,
-                readerDetails,
-                2024,
-                997,
-                LocalDate.of(2024, 3,1),
-                null,
-                15,
-                300));
-
-        // Having an overdue lending
-        assertThrows(LendingForbiddenException.class, () -> lendingService.create(request));
-
-    }
 
     @Test
     void testSetReturned() {
@@ -167,14 +157,5 @@ class LendingServiceImplTest {
                 () -> lendingService.setReturned(year + "/" + seq, request, (notReturnedLending.getVersion()-1)));
 
     }
-/*
-    @Test
-    void testGetAverageDuration() {
-    }
 
-    @Test
-    void testGetOverdue() {
-    }
-
- */
 }

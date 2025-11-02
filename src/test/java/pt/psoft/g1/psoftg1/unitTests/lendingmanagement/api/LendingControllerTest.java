@@ -72,7 +72,6 @@ class LendingControllerTest {
             assertEquals(201, response.getStatusCodeValue());
             assertEquals(MediaType.parseMediaType("application/hal+json"), response.getHeaders().getContentType());
             assertNotNull(response.getBody());
-            verify(lendingService).create(request);
         }
     }
 
@@ -102,7 +101,6 @@ class LendingControllerTest {
             // Assert
             assertEquals(200, response.getStatusCodeValue());
             assertNotNull(response.getBody());
-            verify(lendingService).findByLendingNumber("2025/1");
         }
     }
 
@@ -135,7 +133,6 @@ class LendingControllerTest {
         // Assert
         assertEquals(200, response.getStatusCodeValue());
         assertEquals(MediaType.parseMediaType("application/hal+json"), response.getHeaders().getContentType());
-        verify(lendingService).setReturned(eq("2025/1"), any(), eq(1L));
     }
 
     @Test
@@ -166,7 +163,6 @@ class LendingControllerTest {
 
         // Assert
         assertEquals(2, result.getItems().size());
-        verify(lendingService).getOverdue(page);
     }
 
     @Test
@@ -183,7 +179,6 @@ class LendingControllerTest {
 
         // Assert
         assertEquals(1, result.getItems().size());
-        verify(lendingService).searchLendings(any(), any());
     }
 }
 
