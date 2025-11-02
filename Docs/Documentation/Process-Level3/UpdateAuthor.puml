@@ -1,0 +1,79 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+autonumber
+
+skinparam participant {
+    BackgroundColor 65D2FB
+    BorderColor Black
+    ArrowColor Black
+}
+
+skinparam actor {
+    BackgroundColor 65D2FB
+    BorderColor Black
+    ArrowColor Black
+}
+
+participant "Controller" as CTRL <<component>>
+participant "Service" as SER <<component>>
+participant "Repository" as REPO <<component>>
+participant "Mapper" as MAP <<component>>
+participant "Persistence" as PER <<component>>
+participant "Domain Model" as A <<component>>
+
+?o-> CTRL : PATCH/api/authors/{authorNumber}
+activate CTRL
+CTRL -> CTRL : validates the request
+alt request is invalid
+?O<-- CTRL : Reponse status code - 400 Bad Request
+else request is valid
+CTRL -> CTRL : handles photo
+CTRL -> SER : partial Update
+activate SER
+SER -> REPO : findByAuthorNumber
+activate REPO
+REPO -> PER : findByAuthorNumber
+activate PER
+alt author not found
+PER --> REPO : Author Not Found
+REPO --> SER : throws NotFoundException
+SER --> CTRL : throws NotFoundException
+?o<-- CTRL : Response status code - 404 Not Found
+else author found
+PER --> REPO : Author Entity or Author Document
+REPO -> MAP : to Domain
+activate MAP
+MAP -> MAP : converts the AuthorEntity or AuthorDocument to Author
+MAP --> REPO : Author
+deactivate MAP
+REPO --> SER : Author
+deactivate REPO
+SER -> SER : handle the photo from the request
+SER -> A : apply Patch
+activate A
+A -> A : apply the patch
+A --> SER : Updated Author
+deactivate A
+SER -> REPO : save
+activate REPO
+REPO -> PER : save
+activate PER
+PER -> PER : save the author
+PER --> REPO : Saved Author
+deactivate PER
+REPO --> SER : Saved Author
+deactivate REPO
+SER --> CTRL : Saved Author
+deactivate SER
+CTRL -> MAP : to Author View
+activate MAP
+MAP -> MAP : converts the Author to AuthorView
+MAP --> CTRL : AuthorView
+deactivate MAP
+?o<-- CTRL : Response status code - 200 OK
+deactivate CTRL
+end alt
+end alt
+
+@enduml

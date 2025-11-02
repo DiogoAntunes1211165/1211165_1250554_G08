@@ -1,0 +1,28 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+autonumber
+
+skinparam participant {
+    BackgroundColor 65D2FB
+    BorderColor Black
+    ArrowColor Black
+}
+
+skinparam actor {
+    BackgroundColor 65D2FB
+    BorderColor Black
+    ArrowColor Black
+}
+
+actor User as U
+participant "Library Management" as LMS
+
+U --> LMS : Read X
+activate LMS
+LMS --> U : 200 | 400
+deactivate LMS
+
+
+
+@enduml

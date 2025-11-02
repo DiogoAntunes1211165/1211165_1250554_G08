@@ -1,0 +1,139 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+autonumber
+
+autonumber
+
+skinparam participant {
+    BackgroundColor 65D2FB
+    BorderColor Black
+    ArrowColor Black
+}
+
+skinparam actor {
+    BackgroundColor 65D2FB
+    BorderColor Black
+    ArrowColor Black
+}
+
+participant "Controller" as CTRL <<component>>
+participant "Service" as SER <<component>>
+participant "Repository" as REPO <<component>>
+participant "Mapper" as MAP <<component>>
+participant "Persistence" as PER <<component>>
+participant "Domain Model" as L <<component>>
+
+?o->> CTRL : POST /lendings/
+activate CTRL
+CTRL -> SER : create
+activate SER
+SER -> REPO : list lendings by readerNumber
+activate REPO
+REPO -> PER : findLendingsByReaderNumber
+activate PER
+PER -> REPO : List<LendingEntity> or List<LendingDocument>
+deactivate PER
+REPO -> MAP : to Domain
+loop For each LendingEntity or LendingDocument
+activate MAP
+MAP -> MAP : LendingEntity or LendingDocument to Lending
+end alt
+MAP --> REPO : List<Lending>
+deactivate MAP
+REPO --> SER : List<Lending>
+deactivate REPO
+loop For each lending
+SER -> SER : check if reader does not have 3 or more books past due date
+alt Reader has 3 or more books past due date
+SER -> SER : throw LendingForbidenException
+SER --> CTRL : throws LendingForbiddenException
+?o<<-- CTRL : Response status code - 404 Bad Request
+else Reader has less than 3 books past due date
+SER -> REPO : findByIsbn to check if the book exists
+activate REPO
+REPO -> PER : findBookByIsbn
+activate PER
+alt Book doesnot exist
+PER --> REPO : throws NotFoundException
+REPO --> SER : throws NotFoundException
+SER --> CTRL : throws NotFoundException
+?o<<-- CTRL : Response status code - 400 Bad Request
+else Book exists
+PER --> REPO : BookEntity or BookDocument
+deactivate PER
+REPO -> MAP : to Domain
+activate MAP
+MAP -> MAP : BookEntity or BookDocument to Book
+MAP --> REPO : Book
+deactivate MAP
+REPO --> SER : Book
+end alt
+deactivate REPO
+SER -> REPO : findByReaderNumber to find the Reader
+activate REPO
+REPO -> PER : findReaderByReaderNumber
+activate PER
+alt Reader does not exist
+PER --> REPO : throws NotFoundException
+REPO --> SER : throws NotFoundException
+SER --> CTRL : throws NotFoundException
+?o<<-- CTRL : Response status code - 400 Bad Request
+else Reader exists
+PER --> REPO : ReaderEntity or ReaderDocument
+deactivate PER
+REPO -> MAP : to Domain
+activate MAP
+MAP -> MAP : ReaderEntity or ReaderDocument to Reader
+MAP --> REPO : Reader
+deactivate MAP
+REPO --> SER : Reader
+deactivate REPO
+SER -> REPO : Get Count from Current Year
+activate REPO
+REPO -> PER: GET Count From Current Year
+activate PER
+PER -> REPO : Count
+deactivate PER
+REPO --> SER : Count
+deactivate REPO
+SER -> L : new Lending
+activate L
+L -> L : creates
+L --> SER : Lending
+deactivate L
+SER -> REPO : save Lending
+activate REPO
+REPO -> MAP : to Entity or to Document
+activate MAP
+MAP -> MAP : Lending to LendingEntity or LendingDocument
+MAP --> REPO : LendingEntity or LendingDocument
+deactivate MAP
+REPO -> PER : save LendingEntity or LendingDocument
+activate PER
+PER -> PER : saves
+PER --> REPO : saved LendingEntity or LendingDocument
+deactivate PER
+REPO -> MAP : to Domain
+activate MAP
+MAP -> MAP : LendingEntity or LendingDocument to Lending
+MAP --> REPO : Lending
+deactivate MAP
+REPO --> SER : Lending
+deactivate REPO
+SER --> CTRL : Lending
+deactivate SER
+CTRL -> MAP : to Lending View
+activate MAP
+MAP -> MAP : Lending to LendingView
+MAP --> CTRL : LendingView
+deactivate MAP
+?o<<-- CTRL : Response status code - 201 Created
+deactivate CTRL
+end alt
+end alt
+
+
+
+
+@enduml

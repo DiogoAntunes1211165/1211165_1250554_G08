@@ -1,0 +1,30 @@
+@startuml
+
+autonumber
+
+skinparam participant {
+    BackgroundColor 65D2FB
+    BorderColor Black
+    ArrowColor Black
+}
+
+skinparam actor {
+    BackgroundColor 65D2FB
+    BorderColor Black
+    ArrowColor Black
+}
+
+participant "X Management" as AM <<component>>
+
+activate AM
+?o->> AM : DELETE X
+
+alt POST data valid
+  ?o<<-- AM : Response status code - 201
+else POST data invalid
+  ?o<<-- AM : Response status code - 400
+else any service unavailable
+  ?o<<-- AM : Response status code - 503
+end
+
+@enduml

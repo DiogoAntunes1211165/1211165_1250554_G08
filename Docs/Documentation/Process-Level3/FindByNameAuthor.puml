@@ -1,0 +1,52 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+autonumber
+
+skinparam participant {
+    BackgroundColor 65D2FB
+    BorderColor Black
+    ArrowColor Black
+}
+
+skinparam actor {
+    BackgroundColor 65D2FB
+    BorderColor Black
+    ArrowColor Black
+}
+
+participant "Controller" as CTRL <<component>>
+participant "Service" as SER <<component>>
+participant "Repository" as REPO <<component>>
+participant "Mapper" as MAP <<component>>
+participant "Persistence" as PER <<component>>
+
+?o->> CTRL : GET /authors/{authorName}
+activate CTRL
+CTRL -> SER : findByName
+activate SER
+SER -> REPO : findByName
+activate REPO
+REPO -> PER : searchByNameStartsWith
+activate PER
+PER --> REPO : List<AuthorEntity> or List<AuthorDocument>
+deactivate PER
+note right of REPO : Depends on the Active Profile for Database.
+REPO -> MAP : to Domain
+activate MAP
+MAP --> REPO : List<Author>
+deactivate MAP
+REPO --> SER : List<Author>
+deactivate REPO
+SER --> CTRL : List<Author>
+deactivate SER
+CTRL -> MAP : to View
+activate MAP
+MAP --> CTRL : List<AuthorView>
+deactivate MAP
+?o<<-- CTRL : List<AuthorView>
+deactivate CTRL
+
+
+
+@enduml

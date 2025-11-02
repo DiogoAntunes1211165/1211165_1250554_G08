@@ -1,0 +1,106 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+autonumber
+
+skinparam participant {
+    BackgroundColor 65D2FB
+    BorderColor Black
+    ArrowColor Black
+}
+
+skinparam actor {
+    BackgroundColor 65D2FB
+    BorderColor Black
+    ArrowColor Black
+}
+
+participant "Controller" as CTRL <<component>>
+participant "Service" as SER <<component>>
+participant "Repository" as REPO <<component>>
+participant "Mapper" as MAP <<component>>
+participant "Persistence" as PER <<component>>
+participant "Domain Model" as A <<component>>
+
+?o-> CTRL : DELETE/api/authors/{authorNumber}/photo
+activate CTRL
+CTRL -> SER : findByAuthorNumber
+activate SER
+SER -> REPO : findByAuthorNumber
+activate REPO
+REPO -> PER : findByAuthorNumber
+activate PER
+alt author not found
+PER --> REPO : Author Not Found
+REPO --> SER : throws NotFoundException
+SER --> CTRL : throws NotFoundException
+?o<-- CTRL : Response status code - 404 Not Found
+else author found
+PER --> REPO : Author Entity or Author Document
+REPO -> MAP : to Domain
+activate MAP
+MAP -> MAP : converts the AuthorEntity or AuthorDocument to Author
+MAP --> REPO : Author
+deactivate MAP
+REPO --> SER : Author
+deactivate REPO
+SER --> CTRL : Author
+deactivate SER
+CTRL -> A : get Photo
+alt photo not found
+A --> CTRL : throws NotFoundException
+?o<-- CTRL : Response status code - 404 Not Found
+else photo found
+A --> CTRL : Photo
+deactivate A
+CTRL -> SER : delete File
+activate SER
+SER -> SER : deletes File from file storage
+SER --> CTRL : void
+deactivate SER
+CTRL -> SER : removeAuthorPhoto
+activate SER
+SER -> REPO : findByAuthorNumber
+activate REPO
+REPO -> PER : findByAuthorNumber
+activate PER
+alt author not found
+PER --> REPO : Author Not Found
+REPO --> SER : throws NotFoundException
+SER --> CTRL : throws NotFoundException
+?o<-- CTRL : Response status code - 404 Not Found
+else author found
+PER --> REPO : Author Entity or Author Document
+REPO -> MAP : to Domain
+activate MAP
+MAP -> MAP : converts the AuthorEntity or AuthorDocument to Author
+MAP --> REPO : Author
+deactivate MAP
+REPO -> A : remove Photo
+activate A
+alt version conflict
+A --> REPO : throws ConflictException
+REPO --> SER : throws ConflictException
+SER --> CTRL : throws ConflictException
+?o<-- CTRL : Response status code - 409 Conflict
+else no version conflict
+A -> A : removes Photo
+A --> REPO : Updated Author
+deactivate A
+REPO -> PER : save
+activate PER
+PER -> PER : save the author
+PER --> REPO : Saved Author
+deactivate PER
+REPO --> SER : Saved Author
+deactivate REPO
+SER --> CTRL : Saved Author
+deactivate SER
+?o<-- CTRL : Response status code - 200 OK
+deactivate CTRL
+end alt
+end alt
+end alt
+end alt
+
+@enduml
