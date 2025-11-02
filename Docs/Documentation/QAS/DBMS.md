@@ -1,4 +1,4 @@
-# Technical Memo: Supporting Multiple Databases through Configuration
+# Quality Attribute Scenario: Supporting Multiple Databases through Configuration
 
 | Element   | Statement regarding the need for database flexibility.                                                                                                                                                                                                                                                   |
 |-----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
