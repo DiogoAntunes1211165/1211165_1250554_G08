@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8082:8080"  # expõe app no host na porta 8082
+      - "8083:8080"  # expõe app no host na porta 8082
     environment:
       # Ativa o profile staging para usar SQL Server + MongoDB remotos
       - SPRING_PROFILES_ACTIVE=bootstrap,sqlServer,google,openlibrary
