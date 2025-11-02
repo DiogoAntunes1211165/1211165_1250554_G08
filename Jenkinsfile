@@ -45,16 +45,6 @@ pipeline {
                 """
             }
         }
-        // Novo stage
-        stage('Flush Redis') {
-            steps {
-                echo 'Flushing Redis database after deployment...'
-                sh 'redis-cli -h 74.161.33.56 -p 6379 FLUSHALL'
-            }
-        }
-
-    }
-
 
 
     post {
