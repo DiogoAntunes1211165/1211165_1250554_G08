@@ -16,8 +16,8 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                echo 'Cloning repository (branch: dev)...'
-                git branch: 'dev', url: 'https://github.com/DiogoAntunes1211165/1211165_1250554_G08.git'
+                echo 'Cloning repository (branch: staging)...'
+                git branch: 'staging', url: 'https://github.com/DiogoAntunes1211165/1211165_1250554_G08.git'
             }
         }
 
@@ -37,8 +37,8 @@ pipeline {
                     sh """
                     docker run --rm -v \$(pwd):/app -w /app ${DOCKER_IMAGE} \
                     mvn sonar:sonar \
-                        -Dsonar.projectKey=psoft-g1-dev \
-                        -Dsonar.projectName="PSoft G1 Project Dev" \
+                        -Dsonar.projectKey=psoft-g1-staging \
+                        -Dsonar.projectName="PSoft G1 Project Staging" \
                         -Dsonar.host.url=http://74.161.33.56:9000 \
                         -Dsonar.login=squ_186e07b99759c0ff10a3f1127bbb2b79ed20a393 \
                         -Dsonar.java.coveragePlugin=jacoco \
@@ -65,22 +65,31 @@ pipeline {
             }
         }
 
-
-        stage('Build Docker Image') {
+        stage('Run Integration Tests') {
             steps {
-                echo 'Building Docker image for dev...'
+                echo 'Running integration tests inside Docker container...'
                 sh """
-                docker build -t psoft-g1:dev .
+                docker run --rm -v \$(pwd):/app -w /app ${DOCKER_IMAGE} \
+                mvn -Dtest=pt.psoft.g1.psoftg1.integrationTests.**.*Test test
                 """
             }
         }
 
-        stage('Deploy to Dev') {
+        stage('Build Docker Image') {
             steps {
-                echo 'Deploying Docker container to dev...'
+                echo 'Building Docker image for staging...'
                 sh """
-                docker-compose -f docker-compose.dev.yml down --remove-orphans
-                docker-compose -f docker-compose.dev.yml up -d --build
+                docker build -t psoft-g1:staging .
+                """
+            }
+        }
+
+        stage('Deploy to Staging') {
+            steps {
+                echo 'Deploying Docker container to staging...'
+                sh """
+                docker-compose -f docker-compose.staging.yml down --remove-orphans
+                docker-compose -f docker-compose.staging.yml up -d --build
                 """
             }
         }
@@ -88,10 +97,10 @@ pipeline {
 
     post {
         success {
-            echo 'Dev pipeline completed successfully!'
+            echo 'Staging pipeline completed successfully!'
         }
         failure {
-            echo 'Dev pipeline failed.'
+            echo 'Staging pipeline failed.'
         }
         always {
             echo 'Pipeline finished.'
