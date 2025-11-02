@@ -5,9 +5,11 @@ import jakarta.persistence.Embeddable;
 import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 
+import java.io.Serializable;
+
 
 @AllArgsConstructor
-public class EmailAddressEntity {
+public class EmailAddressEntity implements Serializable {
 
     String address;
 

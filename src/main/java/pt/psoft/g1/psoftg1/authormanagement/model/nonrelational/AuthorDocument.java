@@ -13,17 +13,13 @@ import pt.psoft.g1.psoftg1.shared.model.nonrelational.NameDocument;
 @Document(collection = "authors")
 public class AuthorDocument extends EntityWithPhotoDocument {
 
-    @Id
     @Getter
+    @Setter
+    @Field("author_id")
     private String authorNumber;
 
     @Version
     private long version;
-
-    @Getter
-    @Setter
-    @Field("gen_id")
-    private String genId;
 
     @Getter
     @Field("name")
@@ -34,11 +30,11 @@ public class AuthorDocument extends EntityWithPhotoDocument {
     private BioDocument bio;
 
     @Builder
-    public AuthorDocument(String name, String bio, String photoURI, String genId) {
+    public AuthorDocument(String name, String bio, String photoURI, String authorNumber) {
         setName(name);
         setBio(bio);
         setPhotoInternal(photoURI);
-        setGenId(genId);
+        setAuthorNumber(authorNumber);
     }
 
     protected AuthorDocument() {}

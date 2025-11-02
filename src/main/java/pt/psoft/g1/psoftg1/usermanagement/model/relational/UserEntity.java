@@ -45,6 +45,8 @@ import lombok.Setter;
 import pt.psoft.g1.psoftg1.shared.model.relational.NameEntity;
 import pt.psoft.g1.psoftg1.usermanagement.model.Password;
 import pt.psoft.g1.psoftg1.usermanagement.model.Role;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 /**
  * Based on https://github.com/Yoh0xFF/java-spring-security-example
@@ -126,6 +128,14 @@ public class UserEntity implements UserDetails {
     @Getter
     private final Set<Role> authorities = new HashSet<>();
 
+    // Jackson deserialization hook: populate authorities from JSON without touching Hibernate proxies.
+    @JsonProperty("authorities")
+    @JsonDeserialize(as = java.util.HashSet.class)
+    public void setAuthorities(Set<Role> auths) {
+        this.authorities.clear();
+        if (auths != null) this.authorities.addAll(auths);
+    }
+
     protected UserEntity() {
         // for ORM only
     }
@@ -201,5 +211,11 @@ public class UserEntity implements UserDetails {
 
     public void setName(String name){
         this.name = new NameEntity(name);
+    }
+
+    // Jackson will prefer this setter when deserializing the `name` property (which can contain type metadata).
+    @JsonProperty("name")
+    public void setName(NameEntity nameEntity) {
+        this.name = nameEntity;
     }
 }

@@ -9,10 +9,17 @@ import lombok.Getter;
 import org.springframework.context.annotation.PropertySource;
 import pt.psoft.g1.psoftg1.shared.model.StringUtilsCustom;
 
+import java.io.Serial;
+import java.io.Serializable;
+
 @Getter
 @Embeddable
 @PropertySource({"classpath:config/library.properties"})
-public class NameEntity {
+public class NameEntity implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     @NotNull
     @NotBlank
     @Column(name="NAME", length = 150)

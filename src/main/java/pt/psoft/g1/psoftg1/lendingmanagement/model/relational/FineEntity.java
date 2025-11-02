@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.Setter;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.Fine;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
@@ -15,7 +17,10 @@ import java.util.Objects;
 @Getter
 @Entity
 @Table(name = "fine")
-public class FineEntity{
+public class FineEntity implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

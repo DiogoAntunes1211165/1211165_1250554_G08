@@ -9,13 +9,19 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.access.AccessDeniedException;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.time.LocalDate;
 
 
 @Embeddable
 @NoArgsConstructor
 @PropertySource({"classpath:config/library.properties"})
-public class BirthDateEntity {
+public class BirthDateEntity implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     @Getter
     @Column(nullable = false, updatable = false)
     @Temporal(TemporalType.DATE)

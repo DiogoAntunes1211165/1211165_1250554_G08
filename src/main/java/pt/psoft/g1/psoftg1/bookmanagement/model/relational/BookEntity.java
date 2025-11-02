@@ -14,6 +14,8 @@ import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
 import pt.psoft.g1.psoftg1.genremanagement.model.relational.GenreEntity;
 import pt.psoft.g1.psoftg1.shared.model.EntityWithPhoto;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -22,7 +24,11 @@ import java.util.Objects;
 @Table(name = "Book", uniqueConstraints = {
         @UniqueConstraint(name = "uc_book_isbn", columnNames = {"ISBN"})
 })
-public class BookEntity extends EntityWithPhoto {
+public class BookEntity extends EntityWithPhoto implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     @Getter
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)

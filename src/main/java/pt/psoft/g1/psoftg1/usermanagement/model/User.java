@@ -178,6 +178,6 @@ public class User implements UserDetails {
 	}
 
 	public void setName(String name){
-		this.name = new Name(name);
-	}
+        this.name = new Name(name);
+    }
 }

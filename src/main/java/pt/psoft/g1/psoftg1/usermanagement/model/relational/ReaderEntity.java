@@ -6,8 +6,14 @@ import jakarta.persistence.Entity;
 import pt.psoft.g1.psoftg1.usermanagement.model.Role;
 import pt.psoft.g1.psoftg1.usermanagement.model.User;
 
+import java.io.Serial;
+import java.io.Serializable;
+
 @Entity
-public class ReaderEntity extends UserEntity {
+public class ReaderEntity extends UserEntity implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
 
 
     protected ReaderEntity() {

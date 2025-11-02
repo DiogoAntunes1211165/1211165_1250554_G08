@@ -1,5 +1,6 @@
 package pt.psoft.g1.psoftg1.authormanagement.model.relacional;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,9 +14,16 @@ import pt.psoft.g1.psoftg1.shared.model.Name;
 import pt.psoft.g1.psoftg1.shared.model.relational.EntityWithPhotoEntity;
 import pt.psoft.g1.psoftg1.shared.model.relational.NameEntity;
 
+import java.io.Serial;
+import java.io.Serializable;
+
 @Entity
 @Table(name = "Author")
-public class AuthorEntity extends EntityWithPhotoEntity {
+public class AuthorEntity extends EntityWithPhotoEntity implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "AUTHOR_NUMBER")
@@ -28,6 +36,7 @@ public class AuthorEntity extends EntityWithPhotoEntity {
     @Getter
     @Setter
     private String genId;
+
     @Embedded
     private NameEntity name;
 

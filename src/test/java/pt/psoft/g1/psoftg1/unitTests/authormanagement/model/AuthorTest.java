@@ -25,18 +25,18 @@ class AuthorTest {
     }
     @Test
     void ensureNameNotNull(){
-        assertThrows(IllegalArgumentException.class, () -> new Author(null,validBio, null));
+        assertThrows(IllegalArgumentException.class, () -> new Author(null,validBio, null, null));
     }
 
     @Test
     void testGetBio(){
-        Author author = new Author(validName, validBio, null);
+        Author author = new Author(validName, validBio, null, null);
         assertEquals(validBio, author.getBio());
     }
 
     @Test
     void testGetName(){
-        Author author = new Author(validName, validBio, null);
+        Author author = new Author(validName, validBio, null, null);
         assertEquals(validName, author.getName());
     }
 
@@ -46,12 +46,12 @@ class AuthorTest {
 
     @Test
     void ensureBioNotNull(){
-        assertThrows(IllegalArgumentException.class, () -> new Author(validName,null, null));
+        assertThrows(IllegalArgumentException.class, () -> new Author(validName,null, null, null));
     }
 
     @Test
     void whenVersionIsStaleItIsNotPossibleToPatch() {
-        final var subject = new Author(validName,validBio, null);
+        final var subject = new Author(validName,validBio, null, null);
 
         assertThrows(StaleObjectStateException.class, () -> subject.applyPatch(999, request));
     }
@@ -60,7 +60,7 @@ class AuthorTest {
 
     @Test
     void testCreateAuthorWithoutPhoto() {
-        Author author = new Author(validName, validBio, null);
+        Author author = new Author(validName, validBio, null, null);
         assertNotNull(author);
         assertNull(author.getPhoto());
     }
@@ -68,7 +68,7 @@ class AuthorTest {
     @Test
     void testCreateAuthorRequestWithPhoto() {
         CreateAuthorRequest request = new CreateAuthorRequest(validName, validBio, null, "photoTest.jpg");
-        Author author = new Author(request.getName(), request.getBio(), "photoTest.jpg");
+        Author author = new Author(request.getName(), request.getBio(), "photoTest.jpg", null);
         assertNotNull(author);
         assertEquals(request.getPhotoURI(), author.getPhoto().getPhotoFile());
     }
@@ -76,7 +76,7 @@ class AuthorTest {
     @Test
     void testCreateAuthorRequestWithoutPhoto() {
         CreateAuthorRequest request = new CreateAuthorRequest(validName, validBio, null, null);
-        Author author = new Author(request.getName(), request.getBio(), null);
+        Author author = new Author(request.getName(), request.getBio(), null, null);
         assertNotNull(author);
         assertNull(author.getPhoto());
     }
@@ -91,13 +91,13 @@ class AuthorTest {
 
     @Test
     void ensurePhotoCanBeNull_AkaOptional() {
-        Author author = new Author(validName, validBio, null);
+        Author author = new Author(validName, validBio, null, null);
         assertNull(author.getPhoto());
     }
 
     @Test
     void ensureValidPhoto() {
-        Author author = new Author(validName, validBio, "photoTest.jpg");
+        Author author = new Author(validName, validBio, "photoTest.jpg", null);
         Photo photo = author.getPhoto();
         assertNotNull(photo);
         assertEquals("photoTest.jpg", photo.getPhotoFile());
