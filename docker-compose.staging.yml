@@ -8,6 +8,21 @@ services:
     ports:
       - "8082:8080"  # expõe app no host na porta 8082
     environment:
-      # Ativa o profile staging para usar SQL Server + MongoDB remotos
+      # Ativa os profiles que você precisa
       - SPRING_PROFILES_ACTIVE=bootstrap,sqlServer,google,openlibrary
+      # Sobrescreve host e porta do Redis para usar o container abaixo
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PORT=6379
+    depends_on:
+      - redis
 
+  redis:
+    image: redis:7
+    container_name: redis-staging
+    ports:
+      - "6380:6379"  # expõe Redis para o host, se necessário
+    volumes:
+      - redis-staging-data:/data
+
+volumes:
+  redis-staging-data:
