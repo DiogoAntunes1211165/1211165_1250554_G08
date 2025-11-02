@@ -12,7 +12,9 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
+
 public interface UserRepositoryMongoDB extends MongoRepository<UserDocument, Long> {
+
 
     @Query("{ '_id': ?0 }")
     Optional<UserDocument> findById(Long id);
@@ -20,8 +22,10 @@ public interface UserRepositoryMongoDB extends MongoRepository<UserDocument, Lon
     @Query("{ 'username': ?0 }")
     Optional<UserDocument> findByUsername(String username);
 
+
     @Query("{ 'name': ?0 }")
     List<UserDocument> findByName(String name);
+
 
     @Override
     <S extends UserDocument> S save(S entity);

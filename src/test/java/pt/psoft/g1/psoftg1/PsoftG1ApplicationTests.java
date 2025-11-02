@@ -1,4 +1,4 @@
-/*package pt.psoft.g1.psoftg1;
+package pt.psoft.g1.psoftg1;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -7,7 +7,7 @@ import org.springframework.test.context.ActiveProfiles;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
-@ActiveProfiles("sqlServer")
+
 class PsoftG1ApplicationTests {
 
 	@Test
@@ -15,4 +15,4 @@ class PsoftG1ApplicationTests {
 		assertTrue(true);
 	}
 
-}*/
+}
