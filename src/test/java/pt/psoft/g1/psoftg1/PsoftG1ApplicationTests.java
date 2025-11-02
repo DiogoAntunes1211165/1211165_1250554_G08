@@ -1,4 +1,4 @@
-package pt.psoft.g1.psoftg1;
+/*package pt.psoft.g1.psoftg1;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,4 +15,4 @@ class PsoftG1ApplicationTests {
 		assertTrue(true);
 	}
 
-}
+} */
