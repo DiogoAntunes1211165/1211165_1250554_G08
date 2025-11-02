@@ -40,8 +40,8 @@ pipeline {
             steps {
                 echo 'Deploying Docker container to production...'
                 sh """
-                docker-compose -f docker-compose.prod.yml down --remove-orphans
-                docker-compose -f docker-compose.prod.yml up -d --build
+                docker-compose -f docker-compose.production.yml down --remove-orphans
+                docker-compose -f docker-compose.production.yml up -d --build
                 """
             }
         }
