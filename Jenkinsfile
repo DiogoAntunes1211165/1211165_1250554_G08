@@ -16,7 +16,7 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                echo 'Cloning repository (branch: staging)...'
+                echo 'Cloning repository (branch: dev)...'
                 git branch: 'dev', url: 'https://github.com/DiogoAntunes1211165/1211165_1250554_G08.git'
             }
         }
@@ -37,8 +37,8 @@ pipeline {
                     sh """
                     docker run --rm -v \$(pwd):/app -w /app ${DOCKER_IMAGE} \
                     mvn sonar:sonar \
-                        -Dsonar.projectKey=psoft-g1-staging \
-                        -Dsonar.projectName="PSoft G1 Project Staging" \
+                        -Dsonar.projectKey=psoft-g1-dev \
+                        -Dsonar.projectName="PSoft G1 Project Dev" \
                         -Dsonar.host.url=http://74.161.33.56:9000 \
                         -Dsonar.login=squ_186e07b99759c0ff10a3f1127bbb2b79ed20a393 \
                         -Dsonar.java.coveragePlugin=jacoco \
@@ -77,19 +77,19 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                echo 'Building Docker image for staging...'
+                echo 'Building Docker image for dev...'
                 sh """
-                docker build -t psoft-g1:staging .
+                docker build -t psoft-g1:dev .
                 """
             }
         }
 
-        stage('Deploy to Staging') {
+        stage('Deploy to Dev') {
             steps {
-                echo 'Deploying Docker container to staging...'
+                echo 'Deploying Docker container to dev...'
                 sh """
-                docker-compose -f docker-compose.staging.yml down --remove-orphans
-                docker-compose -f docker-compose.staging.yml up -d --build
+                docker-compose -f docker-compose.dev.yml down --remove-orphans
+                docker-compose -f docker-compose.dev.yml up -d --build
                 """
             }
         }
@@ -97,10 +97,10 @@ pipeline {
 
     post {
         success {
-            echo 'Staging pipeline completed successfully!'
+            echo 'Dev pipeline completed successfully!'
         }
         failure {
-            echo 'Staging pipeline failed.'
+            echo 'Dev pipeline failed.'
         }
         always {
             echo 'Pipeline finished.'
