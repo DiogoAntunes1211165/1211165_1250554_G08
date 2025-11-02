@@ -45,14 +45,24 @@ pipeline {
                 """
             }
         }
+        // Novo stage
+        stage('Flush Redis') {
+            steps {
+                echo 'Flushing Redis database after deployment...'
+                sh 'redis-cli -h 74.161.33.56 -p 6379 FLUSHALL'
+            }
+        }
+
     }
+
+
 
     post {
         success {
-            echo '✅ Production deployment completed successfully!'
+            echo 'Production deployment completed successfully!'
         }
         failure {
-            echo '❌ Production deployment failed.'
+            echo 'Production deployment failed.'
         }
     }
 }
