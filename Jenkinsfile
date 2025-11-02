@@ -30,6 +30,16 @@ pipeline {
             }
         }
 
+        stage('Run Mutation Tests') {
+            steps {
+                echo 'Running mutation tests with PIT...'
+                sh """
+                docker run --rm -v \$(pwd):/app -w /app ${DOCKER_IMAGE} \
+                mvn org.pitest:pitest-maven:mutationCoverage
+                """
+            }
+        }
+
         stage('SonarQube Analysis') {
             steps {
                 echo 'Running SonarQube analysis...'
@@ -42,7 +52,8 @@ pipeline {
                         -Dsonar.host.url=http://74.161.33.56:9000 \
                         -Dsonar.login=squ_186e07b99759c0ff10a3f1127bbb2b79ed20a393 \
                         -Dsonar.java.coveragePlugin=jacoco \
-                        -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+                        -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
+                        -Dsonar.pitest.reportPath=target/pit-reports
                     """
                 }
             }
@@ -76,8 +87,6 @@ pipeline {
                 sh 'redis-cli -h 74.161.33.56 -p 6379 FLUSHALL'
             }
         }
-
-
 
         stage('Build Docker Image') {
             steps {
