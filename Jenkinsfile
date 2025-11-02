@@ -3,8 +3,7 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = 'maven:3.9.2-eclipse-temurin-17-alpine'
-        SONARQUBE_ENV = 'sonarqube'
-        BRANCH_NAME = "${env.BRANCH_NAME}" // Jenkins fornece o nome da branch
+        SONARQUBE_ENV = 'sonarqube'  // nome configurado no Jenkins
     }
 
     stages {
@@ -18,7 +17,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo 'Cloning repository (branch: staging)...'
-                git branch: 'staging', url: 'https://github.com/DiogoAntunes1211165/1211165_G08.git'
+                git branch: 'staging', url: 'https://github.com/DiogoAntunes1211165/1211165_1250554_G08.git'
             }
         }
 
@@ -27,15 +26,6 @@ pipeline {
                 echo 'Running unit tests and generating JaCoCo report...'
                 sh """
                 docker run --rm -v \$(pwd):/app -w /app ${DOCKER_IMAGE} mvn clean verify
-                """
-            }
-        }
-
-        stage('Run Integration Tests') {
-            steps {
-                echo 'Running integration tests...'
-                sh """
-                docker run --rm -v \$(pwd):/app -w /app ${DOCKER_IMAGE} mvn verify -P integration-tests
                 """
             }
         }
@@ -74,6 +64,20 @@ pipeline {
                 """
             }
         }
+
+        stage('Run Integration Tests') {
+            steps {
+                echo 'Running integration tests...'
+                sh """
+                docker run --rm -v \$(pwd):/app -w /app ${DOCKER_IMAGE} \
+                mvn verify -P integration-tests
+                """
+                echo 'Flushing Redis after integration tests...'
+                sh 'redis-cli -h 74.161.33.56 -p 6379 FLUSHALL'
+            }
+        }
+
+
 
         stage('Build Docker Image') {
             steps {
