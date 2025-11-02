@@ -1,29 +1,46 @@
 package pt.psoft.g1.psoftg1.authormanagement.model;
 
-import jakarta.persistence.*;
+
 import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.StaleObjectStateException;
 import pt.psoft.g1.psoftg1.authormanagement.services.UpdateAuthorRequest;
 import pt.psoft.g1.psoftg1.exceptions.ConflictException;
 import pt.psoft.g1.psoftg1.shared.model.EntityWithPhoto;
 import pt.psoft.g1.psoftg1.shared.model.Name;
+import pt.psoft.g1.psoftg1.shared.services.generator.IdGeneratorFactory;
 
-@Entity
+
 public class Author extends EntityWithPhoto {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "AUTHOR_NUMBER")
-    @Getter
-    private Long authorNumber;
 
-    @Version
+    private final IdGeneratorFactory idGeneratorFactory = new IdGeneratorFactory();
+
+    @Getter
+    @Setter
+    private String authorNumber;
+
     private long version;
 
-    @Embedded
+
     private Name name;
 
-    @Embedded
+    @Getter
+    private String genId;
+
+
     private Bio bio;
+
+    protected Author() {
+
+    }
+
+    public void setGenId(String genId) {
+        if (this.genId == null) {
+            this.genId = idGeneratorFactory.getGenerator().generateId();
+        }else {
+            this.genId = genId;
+        }
+    }
 
     public void setName(String name) {
         this.name = new Name(name);
@@ -37,19 +54,17 @@ public class Author extends EntityWithPhoto {
         return version;
     }
 
-    public Long getId() {
-        return authorNumber;
+    public String getId() {
+        return genId;
     }
 
-    public Author(String name, String bio, String photoURI) {
+    public Author(String name, String bio, String photoURI, String genId) {
         setName(name);
         setBio(bio);
         setPhotoInternal(photoURI);
+        setGenId(genId);
     }
 
-    protected Author() {
-        // got ORM only
-    }
 
 
     public void applyPatch(final long desiredVersion, final UpdateAuthorRequest request) {
@@ -77,5 +92,14 @@ public class Author extends EntityWithPhoto {
     public String getBio() {
         return this.bio.toString();
     }
+
+    public String getPhotoURI() {
+        if (super.getPhoto() == null) {
+            return null;
+        }
+        return super.getPhoto().getPhotoFile();
+    }
+
+
 }
 

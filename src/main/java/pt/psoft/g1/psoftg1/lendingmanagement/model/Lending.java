@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.StaleObjectStateException;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
 import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
@@ -23,9 +25,9 @@ import java.util.Optional;
  * <p>It is identified in the system by an auto-generated {@code id}, and has a unique-constrained
  * natural key ({@code LendingNumber}) with its own business rules.
  * @author  rmfranca*/
-@Entity
-@Table(uniqueConstraints = {
-        @UniqueConstraint(columnNames={"LENDING_NUMBER"})})
+
+@Getter
+@NoArgsConstructor
 public class Lending {
 
     /**
@@ -37,8 +39,7 @@ public class Lending {
      * exposed.
      * @author pgsousa
      */
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+
     private Long pk;
 
     /**
@@ -52,35 +53,31 @@ public class Lending {
     /**
      * {@code Book} associated with this {@code Lending}.
      * */
-    @NotNull
-    @Getter
-    @ManyToOne(fetch=FetchType.EAGER, optional = false)
+
+
+
     private Book book;
 
     /**
      * {@code Reader} associated with this {@code Lending}.
      **/
-    @NotNull
-    @Getter
-    @ManyToOne(fetch=FetchType.EAGER, optional = false)
+
+
+
     private ReaderDetails readerDetails;
 
     /**
      * Date of this {@code Lending}'s creation.
      * */
-    @NotNull
-    @Column(nullable = false, updatable = false)
-    @Temporal(TemporalType.DATE)
-    @Getter
+
+
     private LocalDate startDate;
 
     /**
      * Date this {@code Lending} is to be returned.
      * */
-    @NotNull
-    @Column(nullable = false)
-    @Temporal(TemporalType.DATE)
-    @Getter
+
+
     private LocalDate limitDate;
 
     /**
@@ -88,33 +85,32 @@ public class Lending {
      * as the lending can never begin with the book already returned. The {@code null} value is used to
      * check if a book has been returned.
      * */
-    @Temporal(TemporalType.DATE)
-    @Getter
+
+
     private LocalDate returnedDate;
 
     // optimistic-lock
     /**
      * Version of the object, to handle concurrency of accesses.
      * */
-    @Version
-    @Getter
+
+
     private long version;
 
     /**
      * Optional commentary written by a reader when the book is returned.
      * This field is initialized as null as the lending can never begin with the book already returned
      * */
-    @Size(min = 0, max = 1024)
-    @Column(length = 1024)
+
     private String commentary = null;
 
-    @Transient
+
     private Integer daysUntilReturn;
 
-    @Transient
+    @Getter
     private Integer daysOverdue;
 
-    @Getter
+
     private int fineValuePerDayInCents;
 
 
@@ -143,6 +139,32 @@ public class Lending {
         this.fineValuePerDayInCents = fineValuePerDayInCents;
         setDaysUntilReturn();
         setDaysOverdue();
+    }
+
+    @Builder
+    public Lending(Book book, ReaderDetails readerDetails, LendingNumber lendingNumber, LocalDate startDate, LocalDate limitDate, LocalDate returnedDate, int fineValuePerDayInCents) {
+        try {
+            this.book = Objects.requireNonNull(book);
+            //System.out.println("Book ON THE @BUILDER OF LENDING:" + this.book.getTitle());
+            //System.out.println("dawdadwawdawdawdawdawdawdadwad");
+            //System.out.println("READER DETAILS: " + readerDetails.getReaderNumber());
+            this.readerDetails = Objects.requireNonNull(readerDetails);
+            //System.out.println("READER DETAILS");
+            //System.out.println("Reader:" + this.readerDetails.getReaderNumber());
+        } catch (NullPointerException e) {
+            throw new IllegalArgumentException("Null objects passed to lending");
+        }
+        this.lendingNumber = lendingNumber;
+        this.startDate = startDate;
+        this.limitDate = limitDate;
+        this.returnedDate = returnedDate;
+        this.fineValuePerDayInCents = fineValuePerDayInCents;
+        //System.out.println("Start Date: " + this.startDate);
+        //System.out.println("Limit Date: " + this.limitDate);
+        //System.out.println("Returned Date: " + this.returnedDate);
+        setDaysUntilReturn();
+        setDaysOverdue();
+
     }
 
     /**
@@ -230,9 +252,6 @@ public class Lending {
     }
 
 
-    /**Protected empty constructor for ORM only.*/
-    protected Lending() {}
-
     /**Factory method meant to be only used in bootstrapping.*/
     public static Lending newBootstrappingLending(Book book,
                                     ReaderDetails readerDetails,
@@ -258,4 +277,11 @@ public class Lending {
         return lending;
 
     }
+
+    public void setBook(Book book) {
+        this.book = book;
+    }
+
+
+
 }

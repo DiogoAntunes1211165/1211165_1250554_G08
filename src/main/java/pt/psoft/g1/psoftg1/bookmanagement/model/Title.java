@@ -7,13 +7,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 
-@Embeddable
 public class Title {
-    @Transient
+
     private final int TITLE_MAX_LENGTH = 128;
-    @NotBlank(message = "Title cannot be blank")
-    @Size(min = 1, max = TITLE_MAX_LENGTH)
-    @Column(name="TITLE", length = TITLE_MAX_LENGTH)
+
     @Getter
     String title;
 

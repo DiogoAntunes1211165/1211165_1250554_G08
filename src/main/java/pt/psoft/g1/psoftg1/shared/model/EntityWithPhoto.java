@@ -11,11 +11,9 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 
 @Getter
-@MappedSuperclass
+
 public abstract class EntityWithPhoto {
-    @Nullable
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name="photo_id")
+
     protected Photo photo;
 
     //This method is used by the mapper in order to set the photo. This will call the setPhotoInternal method that
@@ -29,10 +27,13 @@ public abstract class EntityWithPhoto {
             this.photo = null;
         } else {
             try {
-                //If the Path object instantiation succeeds, it means that we have a valid Path
-                this.photo = new Photo(Path.of(photoURI));
+                Path path = Path.of(photoURI);
+                if (this.photo == null) {
+                    this.photo = new Photo(path); // só cria novo se não existir
+                } else {
+                    this.photo.setPhotoFile(photoURI); // atualiza o existente
+                }
             } catch (InvalidPathException e) {
-                //For some reason it failed, let's set to null to avoid invalid references to photos
                 this.photo = null;
             }
         }

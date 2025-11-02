@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Pageable;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +36,9 @@ public class ReaderServiceImpl implements ReaderService {
 
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "readerEntities", allEntries = true)
+    })
     public ReaderDetails create(CreateReaderRequest request, String photoURI) {
         if (userRepo.findByUsername(request.getUsername()).isPresent()) {
             throw new ConflictException("Username already exists!");
@@ -48,21 +53,6 @@ public class ReaderServiceImpl implements ReaderService {
 
         List<String> stringInterestList = request.getInterestList();
         List<Genre> interestList = this.getGenreListFromStringList(stringInterestList);
-        /*if(stringInterestList != null && !stringInterestList.isEmpty()) {
-            request.setInterestList(this.getGenreListFromStringList(stringInterestList));
-        }*/
-
-        /*
-         * Since photos can be null (no photo uploaded) that means the URI can be null as well.
-         * To avoid the client sending false data, photoURI has to be set to any value / null
-         * according to the MultipartFile photo object
-         *
-         * That means:
-         * - photo = null && photoURI = null -> photo is removed
-         * - photo = null && photoURI = validString -> ignored
-         * - photo = validFile && photoURI = null -> ignored
-         * - photo = validFile && photoURI = validString -> photo is set
-         * */
 
         MultipartFile photo = request.getPhoto();
         if(photo == null && photoURI != null || photo != null && photoURI == null) {
@@ -71,9 +61,8 @@ public class ReaderServiceImpl implements ReaderService {
 
         int count = readerRepo.getCountFromCurrentYear();
         Reader reader = readerMapper.createReader(request);
-        ReaderDetails rd = readerMapper.createReaderDetails(count+1, reader, request, photoURI, interestList);
-
         userRepo.save(reader);
+        ReaderDetails rd = readerMapper.createReaderDetails(count+1, reader, request, photoURI, interestList);
         return readerRepo.save(rd);
     }
 
@@ -87,24 +76,15 @@ public class ReaderServiceImpl implements ReaderService {
     }
 
     @Override
-    public ReaderDetails update(final Long id, final UpdateReaderRequest request, final long desiredVersion, String photoURI){
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "readerEntities", allEntries = true)
+    })
+    public ReaderDetails update(final String id, final UpdateReaderRequest request, final long desiredVersion, String photoURI){
         final ReaderDetails readerDetails = readerRepo.findByUserId(id)
                 .orElseThrow(() -> new NotFoundException("Cannot find reader"));
 
         List<String> stringInterestList = request.getInterestList();
         List<Genre> interestList = this.getGenreListFromStringList(stringInterestList);
-
-         /*
-         * Since photos can be null (no photo uploaded) that means the URI can be null as well.
-         * To avoid the client sending false data, photoURI has to be set to any value / null
-         * according to the MultipartFile photo object
-         *
-         * That means:
-         * - photo = null && photoURI = null -> photo is removed
-         * - photo = null && photoURI = validString -> ignored
-         * - photo = validFile && photoURI = null -> ignored
-         * - photo = validFile && photoURI = validString -> photo is set
-         * */
 
         MultipartFile photo = request.getPhoto();
         if(photo == null && photoURI != null || photo != null && photoURI == null) {
@@ -173,6 +153,9 @@ public class ReaderServiceImpl implements ReaderService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "readerEntities", allEntries = true)
+    })
     public Optional<ReaderDetails> removeReaderPhoto(String readerNumber, long desiredVersion) {
         ReaderDetails readerDetails = readerRepo.findByReaderNumber(readerNumber)
                 .orElseThrow(() -> new NotFoundException("Cannot find reader"));
