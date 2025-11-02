@@ -17,7 +17,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo 'Cloning repository (branch: staging)...'
-                git branch: 'staging', url: 'https://github.com/DiogoAntunes1211165/1211165_1250554_G08.git'
+                git branch: 'dev', url: 'https://github.com/DiogoAntunes1211165/1211165_1250554_G08.git'
             }
         }
 
