@@ -1,27 +1,27 @@
-# Critical Analysis of the Jenkins Pipeline
+# Análise Crítica do Pipeline Jenkins
 
-## Overall Structure
+## Estrutura Geral
 
-The pipeline is well-organized, following a logical flow with the following steps:
+O pipeline está bem organizado, seguindo um fluxo lógico com os seguintes passos:
 
-- Cleaning the workspace.
-- Checking out the repository on the `staging` branch.
-- Running unit tests with JaCoCo coverage.
-- Running mutation tests with PIT.
-- Performing SonarQube analysis.
-- Verifying the Quality Gate.
-- Building the project's JAR.
-- Running integration tests.
-- Building the Docker image.
-- Deploying to staging.
+- Limpeza do workspace.
+- Checkout do repositório na branch `staging`.
+- Execução de testes unitários com cobertura JaCoCo.
+- Execução de testes de mutação com PIT.
+- Realização de análise com SonarQube.
+- Verificação do Quality Gate.
+- Build do JAR do projeto.
+- Execução de testes de integração.
+- Build da imagem Docker.
+- Deploy para o ambiente de staging.
 
-The use of Docker to isolate Maven execution ensures environment consistency, which is a positive aspect.
+A utilização do Docker para isolar a execução do Maven garante consistência no ambiente, o que é um aspeto positivo.
 
-## Strengths
+## Pontos Fortes
 
-- **Use of Docker**: Ensures consistency across build environments.
-- **Clear separation of stages**: Each stage has a well-defined responsibility.
-- **Quality and coverage analysis**: Integrates SonarQube and JaCoCo, which is essential for maintaining code quality.
-- **Mutation tests**: Including mutation testing shows attention to test quality and robustness.
-- **Quality Gate**: The pipeline waits for SonarQube validation before proceeding, preventing problematic builds.
-- **Automated deployment**: Using `docker-compose` to update the staging environment automatically.
+- **Uso de Docker**: Garante consistência entre os diferentes ambientes de build.
+- **Separação clara das etapas**: Cada etapa tem uma responsabilidade bem definida.
+- **Análise de qualidade e cobertura**: Integra SonarQube e JaCoCo, essencial para manter a qualidade do código.
+- **Testes de mutação**: A inclusão de testes de mutação demonstra atenção à qualidade e robustez dos testes.
+- **Quality Gate**: O pipeline aguarda a validação do SonarQube antes de prosseguir, prevenindo builds problemáticos.
+- **Deploy automatizado**: Utiliza `docker-compose` para atualizar automaticamente o ambiente de staging.
