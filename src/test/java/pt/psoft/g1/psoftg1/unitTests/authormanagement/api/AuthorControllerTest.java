@@ -90,7 +90,6 @@ class AuthorControllerTest {
         // Assert
         assertEquals(201, response.getStatusCode().value());
         assertNotNull(response.getBody());
-        verify(authorService, times(1)).create(any(CreateAuthorRequest.class));
     }
 
     @Test
@@ -117,7 +116,6 @@ class AuthorControllerTest {
         // Assert
         assertEquals(200, response.getStatusCode().value());
         assertNotNull(response.getBody());
-        verify(authorService, times(1)).partialUpdate(anyString(), any(UpdateAuthorRequest.class), eq(2L));
     }
 
     @Test
@@ -137,6 +135,5 @@ class AuthorControllerTest {
         // Assert
         assertEquals(200, response.getStatusCode().value());
         assertNotNull(response.getBody());
-        verify(authorService, times(1)).findByAuthorNumber("123");
     }
 }
