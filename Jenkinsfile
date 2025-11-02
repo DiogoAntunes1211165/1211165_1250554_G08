@@ -67,13 +67,17 @@ pipeline {
 
         stage('Run Integration Tests') {
             steps {
-                echo 'Running integration tests inside Docker container...'
+                echo 'Running integration tests...'
                 sh """
                 docker run --rm -v \$(pwd):/app -w /app ${DOCKER_IMAGE} \
-                mvn -Dtest=pt.psoft.g1.psoftg1.integrationTests.**.*Test test
+                mvn verify -P integration-tests
                 """
+                echo 'Flushing Redis after integration tests...'
+                sh 'redis-cli -h 74.161.33.56 -p 6379 FLUSHALL'
             }
         }
+
+
 
         stage('Build Docker Image') {
             steps {
