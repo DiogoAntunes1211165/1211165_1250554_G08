@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pt.psoft.g1.psoftg1.authormanagement.model.Author;
 import pt.psoft.g1.psoftg1.authormanagement.repositories.AuthorRepository;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
-import pt.psoft.g1.psoftg1.bookmanagement.services.google.IsbnLookupService;
+import pt.psoft.g1.psoftg1.bookmanagement.services.IsbnLookupService;
 import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
 import pt.psoft.g1.psoftg1.bookmanagement.repositories.BookRepository;
 import pt.psoft.g1.psoftg1.genremanagement.repositories.GenreRepository;
@@ -192,10 +192,12 @@ public class Bootstrapper implements CommandLineRunner {
         java.util.function.BiFunction<String, String, String> resolveIsbn = (t, fallback) -> {
             Optional<IsbnResult> apiIsbn = tryFindIsbn(t); // agora retorna ISBN + service
             if (apiIsbn.isPresent()) { // Se obteve um ISBN válido, usa-o e loga o serviço
-                logger.info("Título: {} , ISBN from API: {} (service={})", t, apiIsbn.get().isbn(), apiIsbn.get().service());
+                // Reduced verbosity: do not log raw ISBN values, only note which service provided a result
+                logger.debug("Título: {} , ISBN provided by service={}", t, apiIsbn.get().service());
                 return apiIsbn.get().isbn();
             } else {
-                logger.info("Título: {} , ISBN fallback used: {}", t, fallback);
+                // Keep fallback logging at debug level as it's not an operational error
+                logger.debug("Título: {} , ISBN fallback used", t);
                 return fallback;
             }
         };
@@ -445,16 +447,19 @@ public class Bootstrapper implements CommandLineRunner {
             return Optional.empty();
         }
 
-        logger.info("Configured IsbnLookupServices: {}", isbnLookupServices.stream().map(IsbnLookupService::getServiceName).toList());
+        // Lowered verbosity further: use TRACE for very chatty ISBN discovery details
+        logger.trace("Configured IsbnLookupServices: {}", isbnLookupServices.stream().map(IsbnLookupService::getServiceName).toList());
 
         for (IsbnLookupService svc : isbnLookupServices) {
             try {
                 Optional<String> res = svc.findIsbnByTitle(title);
                 if (res.isPresent()) {
-                    logger.info("Found ISBN from service '{}' for title '{}': {}", svc.getServiceName(), title, res.get());
+                    // Found an ISBN: make this a trace-level message and avoid printing the ISBN value
+                    logger.trace("Found ISBN from service '{}' for title '{}'", svc.getServiceName(), title);
                     return Optional.of(new IsbnResult(res.get(), svc.getServiceName()));
                 } else {
-                    logger.debug("Service '{}' returned no result for title '{}'", svc.getServiceName(), title);
+                    // TRACE for no-result from a service
+                    logger.trace("Service '{}' returned no result for title '{}'", svc.getServiceName(), title);
                 }
             } catch (Exception e) {
                 logger.warn("IsbnLookupService '{}' failed for title '{}': {}", svc.getServiceName(), title, e.getMessage());
@@ -511,8 +516,8 @@ public class Bootstrapper implements CommandLineRunner {
             // 2) tenta obter ISBN via serviços externos
             Optional<IsbnResult> isbnOpt = tryFindIsbn(title);
             if (isbnOpt.isPresent()) {
-                // log which service provided the ISBN
-                logger.info("Lookup provided ISBN '{}' via service='{}' for title='{}'", isbnOpt.get().isbn(), isbnOpt.get().service(), title);
+                // Even lower verbosity: switch to TRACE for external lookup results and don't print ISBN value
+                logger.trace("Lookup provided ISBN via service='{}' for title='{}'", isbnOpt.get().service(), title);
                 Optional<Book> foundByIsbn = bookRepository.findByIsbn(isbnOpt.get().isbn());
                 if (foundByIsbn.isPresent()) {
                     books.add(foundByIsbn.get());
@@ -520,10 +525,10 @@ public class Bootstrapper implements CommandLineRunner {
                 } else {
                     // If the API returned an ISBN that isn't in the DB, try the fallback ISBN as a last resort.
                     if (fallbackIsbn != null) {
-                        logger.debug("ISBN '{}' not found in DB; trying fallback ISBN '{}' for title '{}'", isbnOpt.get().isbn(), fallbackIsbn, title);
+                        logger.trace("Lookup result not found in DB; trying fallback for title '{}'", title);
                         Optional<Book> foundByFallback2 = bookRepository.findByIsbn(fallbackIsbn);
                         if (foundByFallback2.isPresent()) {
-                            logger.info("Found book for title '{}' using fallback ISBN '{}'", title, fallbackIsbn);
+                            logger.debug("Found book for title '{}' using fallback", title);
                             books.add(foundByFallback2.get());
                             continue;
                         }
@@ -566,16 +571,14 @@ public class Bootstrapper implements CommandLineRunner {
         //Lendings 1 through 3 (late, returned)
         for(i = 0; i < 3; i++){
             ++seq;
-            System.out.println("Verifying lending number: " + "2025/" + seq);
+            logger.debug("Verifying lending number: 2025/{}", seq);
             if(lendingRepository.findByLendingNumber("2025/" + seq).isEmpty()){  // verifica se o lending_number já existe
 
                 startDate = LocalDate.of(2024, 1,31-i);
                 returnedDate = LocalDate.of(2024,2,15+i);
                 lending = Lending.newBootstrappingLending(books.get(i), readers.get(i*2), 2025, seq, startDate, returnedDate, lendingDurationInDays, fineValuePerDayInCents);
-                System.out.println("Created lending: " + lending.getLendingNumber());
-                System.out.println(lending.getBook().getIsbn());
-                System.out.println(lending.getReaderDetails().toString());
-                System.out.println("tou aqui2");
+                logger.info("Created lending: {}", lending.getLendingNumber());
+                logger.debug("Reader details: {}", lending.getReaderDetails());
                 lendingRepository.save(lending);
 
             }
@@ -587,9 +590,8 @@ public class Bootstrapper implements CommandLineRunner {
             if(lendingRepository.findByLendingNumber("2025/" + seq).isEmpty()){
                 startDate = LocalDate.of(2024, 3,25+i);
                 lending = Lending.newBootstrappingLending(books.get(1+i), readers.get(1+i*2), 2025, seq, startDate, null, lendingDurationInDays, fineValuePerDayInCents);
-                System.out.println("Created lending: " + lending.getLendingNumber());
-                System.out.println(lending.getBook().getIsbn());
-                System.out.println(lending.getReaderDetails().toString());
+                logger.info("Created lending: {}", lending.getLendingNumber());
+                logger.debug("Reader details: {}", lending.getReaderDetails());
                 lendingRepository.save(lending);
             }
         }
@@ -599,9 +601,8 @@ public class Bootstrapper implements CommandLineRunner {
             if(lendingRepository.findByLendingNumber("2025/" + seq).isEmpty()){
                 startDate = LocalDate.of(2024, 4,(1+2*i));
                 lending = Lending.newBootstrappingLending(books.get(3/(i+1)), readers.get(i*2), 2025, seq, startDate, null, lendingDurationInDays, fineValuePerDayInCents);
-                System.out.println("Created lending: " + lending.getLendingNumber());
-                System.out.println(lending.getBook().getIsbn());
-                System.out.println(lending.getReaderDetails().toString());
+                logger.info("Created lending: {}", lending.getLendingNumber());
+                logger.debug("Reader details: {}", lending.getReaderDetails());
                 lendingRepository.save(lending);
             }
         }
@@ -613,9 +614,8 @@ public class Bootstrapper implements CommandLineRunner {
                 startDate = LocalDate.of(2024, 5,(i+1));
                 returnedDate = LocalDate.of(2024,5,(i+2));
                 lending = Lending.newBootstrappingLending(books.get(3-i), readers.get(1+i*2), 2025, seq, startDate, returnedDate, lendingDurationInDays, fineValuePerDayInCents);
-                System.out.println("Created lending: " + lending.getLendingNumber());
-                System.out.println(lending.getBook().getIsbn());
-                System.out.println(lending.getReaderDetails().toString());
+                logger.info("Created lending: {}", lending.getLendingNumber());
+                logger.debug("Reader details: {}", lending.getReaderDetails());
                 lendingRepository.save(lending);
             }
         }
@@ -625,11 +625,10 @@ public class Bootstrapper implements CommandLineRunner {
             ++seq;
             if(lendingRepository.findByLendingNumber("2025/" + seq).isEmpty()){
                 startDate = LocalDate.of(2024, 5,(i+2));
-                returnedDate = LocalDate.of(2024,5,(i+2*2));
+                returnedDate = LocalDate.of(2024, 5,(i+2*2));
                 lending = Lending.newBootstrappingLending(books.get(i), readers.get(i), 2025, seq, startDate, returnedDate, lendingDurationInDays, fineValuePerDayInCents);
-                System.out.println("Created lending: " + lending.getLendingNumber());
-                System.out.println(lending.getBook().getIsbn());
-                System.out.println(lending.getReaderDetails().toString());
+                logger.info("Created lending: {}", lending.getLendingNumber());
+                logger.debug("Reader details: {}", lending.getReaderDetails());
                 lendingRepository.save(lending);
             }
         }
@@ -639,11 +638,10 @@ public class Bootstrapper implements CommandLineRunner {
             ++seq;
             if(lendingRepository.findByLendingNumber("2025/" + seq).isEmpty()){
                 startDate = LocalDate.of(2024, 5,(i+8));
-                returnedDate = LocalDate.of(2024,5,(2*i+8));
+                returnedDate = LocalDate.of(2024, 5,(2*i+8));
                 lending = Lending.newBootstrappingLending(books.get(i), readers.get(1+i%4), 2025, seq, startDate, returnedDate, lendingDurationInDays, fineValuePerDayInCents);
-                System.out.println("Created lending: " + lending.getLendingNumber());
-                System.out.println(lending.getBook().getIsbn());
-                System.out.println(lending.getReaderDetails().toString());
+                logger.info("Created lending: {}", lending.getLendingNumber());
+                logger.debug("Reader details: {}", lending.getReaderDetails());
                 lendingRepository.save(lending);
             }
         }
@@ -653,11 +651,10 @@ public class Bootstrapper implements CommandLineRunner {
             ++seq;
             if(lendingRepository.findByLendingNumber("2025/" + seq).isEmpty()){
                 startDate = LocalDate.of(2024, 5,(i+18));
-                returnedDate = LocalDate.of(2024,5,(2*i+18));
+                returnedDate = LocalDate.of(2024, 5,(2*i+18));
                 lending = Lending.newBootstrappingLending(books.get(i), readers.get(i%2+2), 2025, seq, startDate, returnedDate, lendingDurationInDays, fineValuePerDayInCents);
-                System.out.println("Created lending: " + lending.getLendingNumber());
-                System.out.println(lending.getBook().getIsbn());
-                System.out.println(lending.getReaderDetails().toString());
+                logger.info("Created lending: {}", lending.getLendingNumber());
+                logger.debug("Reader details: {}", lending.getReaderDetails());
                 lendingRepository.save(lending);
             }
         }
@@ -668,9 +665,8 @@ public class Bootstrapper implements CommandLineRunner {
             if(lendingRepository.findByLendingNumber("2025/" + seq).isEmpty()){
                 startDate = LocalDate.of(2024, 6,(i/3+1));
                 lending = Lending.newBootstrappingLending(books.get(i), readers.get(i%2+3), 2025, seq, startDate, null, lendingDurationInDays, fineValuePerDayInCents);
-                System.out.println("Created lending: " + lending.getLendingNumber());
-                System.out.println(lending.getBook().getIsbn());
-                System.out.println(lending.getReaderDetails().toString());
+                logger.info("Created lending: {}", lending.getLendingNumber());
+                logger.debug("Reader details: {}", lending.getReaderDetails());
                 lendingRepository.save(lending);
             }
         }
@@ -681,10 +677,9 @@ public class Bootstrapper implements CommandLineRunner {
             if(lendingRepository.findByLendingNumber("2025/" + seq).isEmpty()){
                 startDate = LocalDate.of(2024, 6,(2+i/4));
                 lending = Lending.newBootstrappingLending(books.get(i), readers.get(4-i%4), 2025, seq, startDate, null, lendingDurationInDays, fineValuePerDayInCents);
-                System.out.println("Created lending: " + lending.getLendingNumber());
-                System.out.println(lending.getBook().getIsbn());
-                System.out.println(lending.getReaderDetails().toString());
-                System.out.println(lending.getBook().getIsbn());
+                logger.info("Created lending: {}", lending.getLendingNumber());
+                logger.debug("Reader details: {}", lending.getReaderDetails());
+                logger.info("Book for lending {} recorded (title hidden to evitar noisy logs)", lending.getLendingNumber());
                 lendingRepository.save(lending);
 
             }

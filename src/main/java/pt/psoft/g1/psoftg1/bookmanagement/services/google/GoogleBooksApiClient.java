@@ -4,42 +4,30 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
 
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
-@Service
-@Order(2)
-@Profile("google")
-public class GoogleBooksIsbnLookupService implements IsbnLookupService {
+@Component
+public class GoogleBooksApiClient {
 
-    private static final Logger logger = LoggerFactory.getLogger(GoogleBooksIsbnLookupService.class);
+    private static final Logger logger = LoggerFactory.getLogger(GoogleBooksApiClient.class);
 
-    // Template da URL da Google Books API. O '%s' será substituído pela query (título) codificada.
-    // Neste serviço usamos `intitle:` para forçar pesquisa pelo título e `maxResults=1` para pedir apenas 1 resultado.
     private static final String GOOGLE_BOOKS_API = "https://www.googleapis.com/books/v1/volumes?q=intitle:%s&maxResults=10";
 
-    // Instâncias simples de RestTemplate e ObjectMapper.
-    // Nota: são criadas aqui como campos finais; em aplicações maiores poder-se-ia injetar estas dependências.
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Override
-    public Optional<String> findIsbnByTitle(String title) {
-        // Validação inicial: se o título for nulo ou vazio, não faz sentido consultar a API.
+    public Optional<String> fetchBookByTitle(String title) {
         if (title == null || title.isBlank()) return Optional.empty();
 
-        // Normaliza o título para NFC para reduzir problemas de encoding/combinação de caracteres
-        // (por exemplo caracteres acentuados representados de formas diferentes). Isto ajuda
-        // a que a mesma string gere sempre a mesma query codificada.
         String queryTitle = java.text.Normalizer.normalize(title, java.text.Normalizer.Form.NFC);
-        logger.debug("GoogleBooks lookup called for normalized title='{}'", queryTitle);
 
         try {
             // Codifica a query para uso em URL (UTF-8 percent-encoding).
@@ -121,9 +109,4 @@ public class GoogleBooksIsbnLookupService implements IsbnLookupService {
         }
     }
 
-    @Override
-    public String getServiceName() {
-        // Nome humano do serviço — útil para logs/diagnóstico quando existem múltiplas implementações.
-        return "GoogleBooks";
-    }
 }

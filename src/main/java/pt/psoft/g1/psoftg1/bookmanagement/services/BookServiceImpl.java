@@ -13,7 +13,6 @@ import pt.psoft.g1.psoftg1.authormanagement.model.Author;
 import pt.psoft.g1.psoftg1.bookmanagement.model.*;
 import pt.psoft.g1.psoftg1.bookmanagement.repositories.BookRepository;
 import lombok.RequiredArgsConstructor;
-import pt.psoft.g1.psoftg1.bookmanagement.services.google.IsbnLookupService;
 import pt.psoft.g1.psoftg1.genremanagement.repositories.GenreRepository;
 import pt.psoft.g1.psoftg1.authormanagement.repositories.AuthorRepository;
 import pt.psoft.g1.psoftg1.exceptions.ConflictException;
@@ -51,39 +50,34 @@ public class BookServiceImpl implements BookService {
     @Override
     public Book create(CreateBookRequest request, String isbn) {
 
-        // Se o ISBN não foi fornecido, tenta buscar pelo título
         if (isbn == null || isbn.isBlank()) {
-            // valida título antes do lookup
             if (request == null || request.getTitle() == null || request.getTitle().isBlank()) {
                 throw new NotFoundException("ISBN not provided and title is empty");
             }
-            // tenta obter via providers configurados (por ordem)
-            Optional<String> found = findIsbnFromProviders(request.getTitle());
-            isbn = found.orElseThrow(() -> new NotFoundException("ISBN not found for title: " + request.getTitle()));
+            isbn = findIsbnFromProviders(request.getTitle())
+                    .orElseThrow(() -> new NotFoundException("ISBN not found for title: " + request.getTitle()));
         }
 
-        if(bookRepository.findByIsbn(isbn).isPresent()){
+        if (bookRepository.findByIsbn(isbn).isPresent()) {
             throw new ConflictException("Book with ISBN " + isbn + " already exists");
         }
 
         List<Author> authors = new ArrayList<>();
-        List<Long> authorNumbers = request.getAuthors();
-        if (authorNumbers != null) {
-            for (Long authorNumber : authorNumbers) {
+        if (request.getAuthors() != null) {
+            for (Long authorNumber : request.getAuthors()) {
                 if (authorNumber == null) continue;
-                Optional<Author> temp = authorRepository.findByAuthorNumber(authorNumber.toString());
-                temp.ifPresent(authors::add);
+                authorRepository.findByAuthorNumber(authorNumber.toString()).ifPresent(authors::add);
             }
         }
 
         MultipartFile photo = request.getPhoto();
         String photoURI = request.getPhotoURI();
-        if(photo == null && photoURI != null || photo != null && photoURI == null) {
+        if ((photo == null && photoURI != null) || (photo != null && photoURI == null)) {
             request.setPhoto(null);
             request.setPhotoURI(null);
         }
 
-        final var genre = genreRepository.findByString(request.getGenre())
+        Genre genre = genreRepository.findByString(request.getGenre())
                 .orElseThrow(() -> new NotFoundException("Genre not found"));
 
         Book newBook = new Book(isbn, request.getTitle(), request.getDescription(), genre, authors, photoURI);
@@ -103,13 +97,16 @@ public class BookServiceImpl implements BookService {
             try {
                 Optional<String> res = svc.findIsbnByTitle(title);
                 if (res.isPresent()) {
-                    logger.info("BookService: found ISBN '{}' via provider '{}' for title '{}'", res.get(), svc.getServiceName(), title);
+                    logger.info("BookService: found ISBN '{}' via provider '{}' for title '{}'",
+                            res.get(), svc.getServiceName(), title);
                     return res;
                 } else {
-                    logger.debug("BookService: provider '{}' returned no result for title '{}'", svc.getServiceName(), title);
+                    logger.debug("BookService: provider '{}' returned no result for title '{}'",
+                            svc.getServiceName(), title);
                 }
             } catch (Exception e) {
-                logger.warn("BookService: provider '{}' failed for title '{}': {}", svc.getServiceName(), title, e.getMessage());
+                logger.warn("BookService: provider '{}' failed for title '{}': {}",
+                        svc.getServiceName(), title, e.getMessage());
             }
         }
         return Optional.empty();

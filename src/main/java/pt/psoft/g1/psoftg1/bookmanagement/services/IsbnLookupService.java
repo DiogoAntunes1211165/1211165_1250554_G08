@@ -1,4 +1,4 @@
-package pt.psoft.g1.psoftg1.bookmanagement.services.google;
+package pt.psoft.g1.psoftg1.bookmanagement.services;
 
 import java.util.Optional;
 
