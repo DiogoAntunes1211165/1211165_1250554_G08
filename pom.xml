@@ -162,26 +162,58 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
 
-            <!-- JaCoCo -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.10</version>
                 <executions>
+                    <!-- Adiciona agente para coletar cobertura -->
                     <execution>
                         <goals>
                             <goal>prepare-agent</goal>
                         </goals>
                     </execution>
+
+                    <!-- Gera relatório -->
                     <execution>
                         <id>report</id>
                         <phase>verify</phase>
                         <goals>
                             <goal>report</goal>
                         </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/jacoco-report</outputDirectory>
+
+                            <!-- Inclui apenas os pacotes que o PIT cobre -->
+                            <includes>
+                                <include>pt/psoft/g1/psoftg1/authormanagement/model/**</include>
+                                <include>pt/psoft/g1/psoftg1/bookmanagement/model/**</include>
+                                <include>pt/psoft/g1/psoftg1/genremanagement/model/**</include>
+                                <include>pt/psoft/g1/psoftg1/lendingmanagement/model/**</include>
+                                <include>pt/psoft/g1/psoftg1/readermanagement/model/**</include>
+                                <include>pt/psoft/g1/psoftg1/shared/model/**</include>
+                            </includes>
+
+                            <!-- Exclui os pacotes que o PIT exclui -->
+                            <excludes>
+                                <exclude>**/configuration/**</exclude>
+                                <exclude>**/bootstrapping/**</exclude>
+                                <exclude>**/shared/services/generator/**</exclude>
+                                <exclude>**/authormanagement/model/relacional/**</exclude>
+                                <exclude>**/shared/api/**</exclude>
+                                <exclude>**/repositories/**</exclude>
+                                <exclude>**/repository/**</exclude>
+                                <exclude>**/mappers/**</exclude>
+                                <exclude>**/services/google/**</exclude>
+                                <exclude>**/services/openlibrary/**</exclude>
+                                <exclude>**/model/relational/**</exclude>
+                                <exclude>**/model/nonrelational/**</exclude>
+                            </excludes>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
+
 
             <!-- PIT Mutation Testing -->
             <plugin>
