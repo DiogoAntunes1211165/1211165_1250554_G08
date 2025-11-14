@@ -40,25 +40,23 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') {
-            steps {
-                echo 'Running SonarQube analysis...'
-                withSonarQubeEnv("${SONARQUBE_ENV}") {
-                    sh """
-                    docker run --rm -v \$(pwd):/app -w /app ${DOCKER_IMAGE} \
-                    mvn sonar:sonar \
-                        -Dsonar.projectKey=psoft-g1-staging \
-                        -Dsonar.projectName="PSoft G1 Project Staging" \
-                        -Dsonar.host.url=http://74.161.33.56:9000 \
-                        -Dsonar.login=squ_186e07b99759c0ff10a3f1127bbb2b79ed20a393 \
-                        -Dsonar.java.coveragePlugin=jacoco \
-                        -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
-                        -Dsonar.pitest.reportPath=target/pit-reports/mutations.xml
-                    """
+          stage('SonarQube Analysis') {
+                    steps {
+                        echo 'Running SonarQube analysis...'
+                        withSonarQubeEnv("${SONARQUBE_ENV}") {
+                            sh """
+                            docker run --rm -v \$(pwd):/app -w /app ${DOCKER_IMAGE} \
+                            mvn sonar:sonar \
+                                -Dsonar.projectKey=psoft-g1-staging \
+                                -Dsonar.projectName="PSoft G1 Project Staging" \
+                                -Dsonar.host.url=http://74.161.33.56:9000 \
+                                -Dsonar.login=squ_186e07b99759c0ff10a3f1127bbb2b79ed20a393 \
+                                -Dsonar.java.coveragePlugin=jacoco \
+                                -Dsonar.coverage.jacoco.xmlReportPaths=target/jacoco-report/jacoco.xml
+                            """
+                        }
+                    }
                 }
-            }
-        }
-
         stage('Quality Gate') {
             steps {
                 timeout(time: 2, unit: 'MINUTES') {
