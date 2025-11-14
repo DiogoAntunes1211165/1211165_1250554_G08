@@ -53,7 +53,7 @@ pipeline {
                         -Dsonar.login=squ_186e07b99759c0ff10a3f1127bbb2b79ed20a393 \
                         -Dsonar.java.coveragePlugin=jacoco \
                         -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
-                        -Dsonar.pitest.reportPath=target/pit-reports
+                        -Dsonar.pitest.reportPath=target/pit-reports/mutations.xml
                     """
                 }
             }
