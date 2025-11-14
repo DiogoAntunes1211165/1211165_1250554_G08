@@ -188,6 +188,7 @@
                 <groupId>org.pitest</groupId>
                 <artifactId>pitest-maven</artifactId>
                 <version>1.18.2</version>
+
                 <dependencies>
                     <dependency>
                         <groupId>org.pitest</groupId>
@@ -195,7 +196,60 @@
                         <version>1.2.2</version>
                     </dependency>
                 </dependencies>
+
+                <configuration>
+                    <!-- Foca nos pacotes onde vale a pena fazer mutation testing -->
+                    <targetClasses>
+                        <param>pt.psoft.g1.psoftg1.authormanagement.model.**</param>
+                        <param>pt.psoft.g1.psoftg1.bookmanagement.model.**</param>
+                        <param>pt.psoft.g1.psoftg1.genremanagement.model.**</param>
+                        <param>pt.psoft.g1.psoftg1.lendingmanagement.model.**</param>
+                        <param>pt.psoft.g1.psoftg1.readermanagement.model.**</param>
+                        <param>pt.psoft.g1.psoftg1.shared.model.**</param>
+                    </targetClasses>
+
+
+                    <!-- Apenas testes num diretório -->
+                    <targetTests>
+                        <param>pt.psoft.g1.psoftg1.unitTests.bookmanagement.model.**</param>
+                        <param>pt.psoft.g1.psoftg1.unitTests.authormanagement.model.**</param>
+                        <param>pt.psoft.g1.psoftg1.unitTests.genremanagement.model.**</param>
+                        <param>pt.psoft.g1.psoftg1.unitTests.lendingmanagement.model.**</param>
+                        <param>pt.psoft.g1.psoftg1.unitTests.readermanagement.model.**</param>
+                        <param>pt.psoft.g1.psoftg1.unitTests.shared.model.**</param>
+                    </targetTests>
+
+                    <!-- Excluir código que não deve ter mutation testing -->
+                    <excludedClasses>
+                        <!-- Config & Bootstrapping -->
+                        <param>*.configuration.*</param>
+                        <param>*.bootstrapping.*</param>
+                        <param>pt.psoft.g1.psoftg1.shared.services.generator.*</param>
+                        <param>pt.psoft.g1.psoftg1.authormanagement.model.relacional.*</param>
+                        <param>pt.psoft.g1.psoftg1.shared.api.*</param>
+
+
+                        <!-- Repositories (interfaces sem lógica + mappers) -->
+                        <param>*.repositories.*</param>
+                        <param>*.repository.*</param>
+                        <param>*.mappers.*</param>
+
+                        <!-- External Services (Google API, OpenLibrary...) -->
+                        <param>*.services.google.*</param>
+                        <param>*.services.openlibrary.*</param>
+
+
+                        <!-- Representações relacionais e não relacionais -->
+                        <param>*.model.relational.*</param>
+                        <param>*.model.nonrelational.*</param>
+                    </excludedClasses>
+
+                    <!-- Opcional: velocidade -->
+                    <threads>4</threads>
+                    <mutationThreshold>0</mutationThreshold>
+                </configuration>
             </plugin>
+
 
             <!-- Maven Compiler -->
             <plugin>
