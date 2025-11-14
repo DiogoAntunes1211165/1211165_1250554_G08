@@ -30,6 +30,18 @@ pipeline {
             }
         }
 
+        stage('Publish JaCoCo HTML Report') {
+            steps {
+                publishHTML(target: [
+                    reportDir: 'target/jacoco-report',
+                    reportFiles: 'index.html',
+                    reportName: 'JaCoCo Coverage Report',
+                    allowMissing: true,
+                    alwaysLinkToLastBuild: true
+                ])
+            }
+        }
+
         stage('Run Mutation Tests') {
             steps {
                 echo 'Running mutation tests with PIT...'
