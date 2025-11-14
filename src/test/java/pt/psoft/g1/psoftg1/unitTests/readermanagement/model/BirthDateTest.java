@@ -25,7 +25,7 @@ public class BirthDateTest {
 
     @Test
     void ensureCorrectStringRepresentation() {
-        BirthDate birthDate = new BirthDate(2000, 1, 1);
-        assertEquals("2000-1-1", birthDate.toString());
+        BirthDate birthDate = new BirthDate(2000, 10, 04);
+        assertEquals("2000-10-04", birthDate.toString());
     }
 }

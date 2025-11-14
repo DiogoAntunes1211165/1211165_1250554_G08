@@ -13,12 +13,20 @@ import pt.psoft.g1.psoftg1.readermanagement.repositories.ReaderRepository;
 import pt.psoft.g1.psoftg1.readermanagement.services.CreateReaderRequest;
 import pt.psoft.g1.psoftg1.readermanagement.services.ReaderMapper;
 import pt.psoft.g1.psoftg1.readermanagement.services.ReaderServiceImpl;
+import pt.psoft.g1.psoftg1.readermanagement.services.UpdateReaderRequest;
 import pt.psoft.g1.psoftg1.shared.repositories.ForbiddenNameRepository;
 import pt.psoft.g1.psoftg1.shared.repositories.PhotoRepository;
 import pt.psoft.g1.psoftg1.shared.model.ForbiddenName;
 import pt.psoft.g1.psoftg1.shared.model.Photo;
 import pt.psoft.g1.psoftg1.usermanagement.model.Reader;
 import pt.psoft.g1.psoftg1.usermanagement.repositories.UserRepository;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+
 
 import java.util.*;
 
@@ -136,4 +144,44 @@ class ReaderServiceTest {
 
         assertThat(result).isPresent();
     }
+
+    @Test
+    void applyPatch_shouldUpdateAllFieldsCorrectly() {
+        Reader mockReader = mock(Reader.class);
+        ReaderDetails rd = new ReaderDetails(123, mockReader, "2010-01-01", "912345678", true, false, false,"oldPhoto.jpg", new ArrayList<>());
+
+        UpdateReaderRequest patch = new UpdateReaderRequest();
+        patch.setFullName("New Name");
+        patch.setBirthDate("2012-03-04");
+        patch.setPhoneNumber("987654321");
+        patch.setUsername("newUsername");
+        patch.setPassword("newPassword");
+        patch.setMarketing(true);
+        patch.setThirdParty(true);
+
+        List<Genre> newGenres = new ArrayList<>();
+        newGenres.add(new Genre("Sci-Fi"));
+        newGenres.add(new Genre("Romance"));
+
+        assertDoesNotThrow(() -> rd.applyPatch(rd.getVersion(), patch, "newPhoto.jpg", newGenres));
+        assertEquals("987654321", rd.getPhoneNumber());
+        assertEquals("2012-03-04", rd.getBirthDate().toString());
+        assertEquals(newGenres.size(), rd.getInterestList().size());
+        assertEquals("newPhoto.jpg", rd.getPhoto().getPhotoFile());
+    }
+
+    @Test
+    void removePhoto_shouldSetPhotoToNull() {
+        Reader mockReader = mock(Reader.class);
+        ReaderDetails rd = new ReaderDetails(123, mockReader, "2010-01-01", "912345678", true, false, false,"photo.jpg", null);
+
+        assertDoesNotThrow(() -> rd.removePhoto(rd.getVersion()));
+        assertNull(rd.getPhoto());
+    }
 }
+
+
+
+
+
+

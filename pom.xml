@@ -247,6 +247,14 @@
                     <!-- Opcional: velocidade -->
                     <threads>4</threads>
                     <mutationThreshold>0</mutationThreshold>
+
+                    <!-- NOVO: gerar relatório XML para SonarQube -->
+                    <reportsDirectory>${project.build.directory}/pit-reports</reportsDirectory>
+                    <outputFormats>
+                        <param>HTML</param>
+                        <param>XML</param>
+                    </outputFormats>
+
                 </configuration>
             </plugin>
 

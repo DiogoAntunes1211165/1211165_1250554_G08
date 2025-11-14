@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import pt.psoft.g1.psoftg1.authormanagement.model.Author;
 import pt.psoft.g1.psoftg1.authormanagement.services.CreateAuthorRequest;
 import pt.psoft.g1.psoftg1.authormanagement.services.UpdateAuthorRequest;
+import pt.psoft.g1.psoftg1.exceptions.ConflictException;
 import pt.psoft.g1.psoftg1.shared.model.EntityWithPhoto;
 import pt.psoft.g1.psoftg1.shared.model.Photo;
 
@@ -102,5 +103,47 @@ class AuthorTest {
         assertNotNull(photo);
         assertEquals("photoTest.jpg", photo.getPhotoFile());
     }
+
+    @Test
+    void testSetGenIdWithNull() {
+        Author author = new Author(validName, validBio, null, null);
+        assertNotNull(author.getId()); // o construtor já deve gerar genId
+    }
+
+    @Test
+    void testSetGenIdWithExisting() {
+        Author author = new Author(validName, validBio, null, "EXISTING_ID");
+        author.setGenId("NEW_ID"); // deve manter o valor passado
+        assertEquals("NEW_ID", author.getId());
+    }
+
+    @Test
+    void testApplyPatchAllFields() {
+        Author author = new Author(validName, validBio, null, null);
+        UpdateAuthorRequest patch = new UpdateAuthorRequest("Nova Bio", "Novo Nome", null, "newPhoto.jpg");
+        author.applyPatch(author.getVersion(), patch);
+        assertEquals("Novo Nome", author.getName());
+        assertEquals("Nova Bio", author.getBio());
+    }
+
+    @Test
+    void testRemovePhotoSuccess() {
+        Author author = new Author(validName, validBio, "photo.jpg", null);
+        long version = author.getVersion();
+        author.removePhoto(version);
+        assertNull(author.getPhoto());
+    }
+
+    @Test
+    void testRemovePhotoConflict() {
+        Author author = new Author(validName, validBio, "photo.jpg", null);
+        long wrongVersion = author.getVersion() + 1;
+        assertThrows(ConflictException.class, () -> author.removePhoto(wrongVersion));
+    }
+
+
+
+
+
 }
 

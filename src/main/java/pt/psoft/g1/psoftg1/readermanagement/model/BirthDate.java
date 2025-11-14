@@ -52,7 +52,12 @@ public class BirthDate {
         this.birthDate = userDate;
     }
 
+    @Override
     public String toString() {
-        return String.format("%d-%d-%d", this.birthDate.getYear(), this.birthDate.getMonthValue(), this.birthDate.getDayOfMonth());
+        return String.format("%04d-%02d-%02d",
+                this.birthDate.getYear(),
+                this.birthDate.getMonthValue(),
+                this.birthDate.getDayOfMonth());
     }
 }
+
