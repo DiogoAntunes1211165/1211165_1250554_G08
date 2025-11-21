@@ -79,7 +79,7 @@ public class BookController {
                 .build().toUri();
 
         return ResponseEntity.created(newBookUri)
-                .eTag(Long.toString(book.getVersion()))
+                .eTag(book.getVersion())
                 .body(bookViewMapper.toBookView(book));
     }
 
@@ -164,7 +164,7 @@ public class BookController {
             throw new ConflictException("Could not update book: "+ e.getMessage());
         }
         return ResponseEntity.ok()
-                .eTag(Long.toString(book.getVersion()))
+                .eTag(book.getVersion())
                 .body(bookViewMapper.toBookView(book));
     }
 
